@@ -61,6 +61,7 @@ export default function MonthlySalesPage() {
           </CardHeader>
 
           <CardContent className="h-[350px]">
+        <div className="w-full h-[300px]">   
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={pieData} dataKey="value" nameKey="name" outerRadius={120} label>
@@ -71,6 +72,7 @@ export default function MonthlySalesPage() {
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
+        </div>
           </CardContent>
         </Card>
 
@@ -96,7 +98,7 @@ export default function MonthlySalesPage() {
         </CardHeader>
 
         <CardContent className="h-[60vh] min-h-[300px]">
-
+      <div className="w-full h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={weeklyBreakdown}>
               <XAxis dataKey="week" />
@@ -114,7 +116,7 @@ export default function MonthlySalesPage() {
               />
             </BarChart>
           </ResponsiveContainer>
-
+      </div>
         </CardContent>
       </Card>
 

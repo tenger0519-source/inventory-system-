@@ -101,7 +101,7 @@ const CustomXAxisTick = ({ x, y, payload }: any) => {
 
 export default function WeeklyGraph() {
   return (
-    <div className="w-full h-[320px]">
+    <div className="w-full h-[300px]">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />

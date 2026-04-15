@@ -106,7 +106,7 @@ export default function WeeklySalesPage() {
 
           {/* ✅ RESPONSIVE HEIGHT */}
           <CardContent className="h-[60vh] min-h-[300px]">
-
+        <div className="w-full h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={weeklyData}>
                 <XAxis dataKey="day" />
@@ -126,7 +126,7 @@ export default function WeeklySalesPage() {
 
               </BarChart>
             </ResponsiveContainer>
-
+           </div>
           </CardContent>
         </Card>
 
