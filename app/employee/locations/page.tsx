@@ -92,20 +92,20 @@ export default function LocationsPage() {
                 <TableCell>{location.quantity}</TableCell>
                 <TableCell>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    location.status === "Available"
-                      : "bg-green-100 text-green-800"
-                    : location.status === "Low Stock"
-                      ? "bg-yellow-100 text-yellow-800"
-                      : "bg-red-100 text-red-800"
-                  }`}>
-                    {location.status}
-                  </span>
+  location.status === "Available"
+    ? "bg-green-100 text-green-800"
+    : location.status === "Low Stock"
+      ? "bg-yellow-100 text-yellow-800"
+      : "bg-red-100 text-red-800"
+}`}>
+  {location.status}
+</span>
                 </TableCell>
               </TableRow>
             ))}
             {filteredLocations.length === 0 && (
               <TableRow>
-                <TableCell colSpan="4" className="text-center py-4 text-muted-foreground">
+                <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
                   Хайлтаар тулгарч мэдээлэл олдсонгүй.
                 </TableCell>
               </TableRow>
