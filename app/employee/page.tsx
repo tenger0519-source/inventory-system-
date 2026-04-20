@@ -96,24 +96,6 @@ export default function EmployeeHome() {
           </CardContent>
         </Card>
 
-        {/* ===== POSITIONS ===== */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Барааны позициид</CardTitle>
-            <CardDescription>
-              Барааны төрөл, санхүүгийн секториор хайж үзэх
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent>
-            <Link href="/employee/positions">
-              <Button className="w-full">
-                Барааны позициид
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-
         {/* ===== LOCATIONS ===== */}
         <Card>
           <CardHeader>
@@ -131,6 +113,7 @@ export default function EmployeeHome() {
             </Link>
           </CardContent>
         </Card>
+
 
         {/* ===== WEEKLY GRAPH ===== */}
         <Card>
