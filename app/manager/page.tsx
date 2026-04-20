@@ -9,23 +9,37 @@ import { useApp } from "@/lib/app-context"
 const DAYS = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
 
 export default function ManagerHome() {
-  const { tasks } = useApp()
-  
-  // Get today's name
-  const todayIndex = new Date().getDay()
-  const todayName = DAYS[todayIndex]
+  const { tasks, transactions, products, users, globalTime } = useApp()
   
   // Calculate task counts
-  const todayTasks = tasks.filter(task => task.day === todayName)
+  const todayTasks = tasks.filter(task => task.day === globalTime.currentDay)
   const weekTasks = tasks.filter(task => DAYS.includes(task.day || ""))
   
   // Count by type
-  const incomingTasks = weekTasks.filter(task => task.type === "move" && task.from?.includes("Хүлээн авах"))
-  const outgoingTasks = weekTasks.filter(task => task.type === "move" && !task.from?.includes("Хүлээн авах"))
+  const incomingTasks = weekTasks.filter(task => task.type === "move" && task.from?.includes("outside"))
+  const outgoingTasks = weekTasks.filter(task => task.type === "move" && task.to?.includes("outside"))
   
   const dailyCount = todayTasks.length
   const weeklyCount = weekTasks.length
   const monthlyCount = weeklyCount * 4 // Rough estimate
+  
+  // Calculate sales statistics
+  const todayTransactions = transactions.filter(t => t.day === globalTime.currentDay)
+  const weekTransactions = transactions.filter(t => DAYS.includes(t.day || ""))
+  
+  const todayItems = todayTransactions.reduce((sum, t) => sum + t.items.reduce((s, item) => s + item.quantity, 0), 0)
+  const todayRevenue = todayTransactions.reduce((sum, t) => sum + t.total, 0)
+  
+  const weekItems = weekTransactions.reduce((sum, t) => sum + t.items.reduce((s, item) => s + item.quantity, 0), 0)
+  const weekRevenue = weekTransactions.reduce((sum, t) => sum + t.total, 0)
+  
+  const monthItems = weekItems * 4 // Rough estimate
+  const monthRevenue = weekRevenue * 4 // Rough estimate
+  
+  // Calculate system statistics
+  const employeeCount = users.filter(u => u.roles.includes("employee")).length
+  const supplierCount = users.filter(u => u.roles.includes("supplier")).length
+  const productCount = products.length
   
   return (
     <main className="min-h-screen bg-background p-6">
@@ -75,22 +89,22 @@ export default function ManagerHome() {
             <Link href="/manager/daily_sales">
               <div className="rounded-lg border p-4 hover:bg-muted transition cursor-pointer space-y-1">
                 <p className="text-sm text-muted-foreground">Өнөөдөр</p>
-                <p className="text-xl font-semibold">120 бараа</p>
-                <p className="text-sm text-muted-foreground">₮ 1,200,000</p>
+                <p className="text-xl font-semibold">{todayItems} бараа</p>
+                <p className="text-sm text-muted-foreground">₮ {todayRevenue.toLocaleString()}</p>
               </div>
             </Link>
             <Link href="/manager/weekly_sales">
               <div className="rounded-lg border p-4 hover:bg-muted transition cursor-pointer space-y-1">
                 <p className="text-sm text-muted-foreground">7 хоног</p>
-                <p className="text-xl font-semibold">860 бараа</p>
-                <p className="text-sm text-muted-foreground">₮ 8,500,000</p>
+                <p className="text-xl font-semibold">{weekItems} бараа</p>
+                <p className="text-sm text-muted-foreground">₮ {weekRevenue.toLocaleString()}</p>
               </div>
             </Link>
             <Link href="/manager/monthly_sales">
               <div className="rounded-lg border p-4 hover:bg-muted transition cursor-pointer space-y-1">
                 <p className="text-sm text-muted-foreground">Сар</p>
-                <p className="text-xl font-semibold">3,200 бараа</p>
-                <p className="text-sm text-muted-foreground">₮ 32,000,000</p>
+                <p className="text-xl font-semibold">{monthItems} бараа</p>
+                <p className="text-sm text-muted-foreground">₮ {monthRevenue.toLocaleString()}</p>
               </div>
             </Link>
           </CardContent>
@@ -106,19 +120,19 @@ export default function ManagerHome() {
             <Link href="/manager/employees">
               <div className="rounded-lg border p-4 hover:bg-muted transition cursor-pointer space-y-1">
                 <p className="text-sm text-muted-foreground">Ажилчид</p>
-                <p className="text-xl font-semibold">18</p>
+                <p className="text-xl font-semibold">{employeeCount}</p>
               </div>
             </Link>
             <Link href="/manager/suppliers">
               <div className="rounded-lg border p-4 hover:bg-muted transition cursor-pointer space-y-1">
                 <p className="text-sm text-muted-foreground">Нийлүүлэгчид</p>
-                <p className="text-xl font-semibold">6</p>
+                <p className="text-xl font-semibold">{supplierCount}</p>
               </div>
             </Link>
             <Link href="/manager/products">
               <div className="rounded-lg border p-4 hover:bg-muted transition cursor-pointer space-y-1">
                 <p className="text-sm text-muted-foreground">Бараа</p>
-                <p className="text-xl font-semibold">1,240</p>
+                <p className="text-xl font-semibold">{productCount}</p>
               </div>
             </Link>
           </CardContent>
