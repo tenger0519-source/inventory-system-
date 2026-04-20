@@ -70,6 +70,14 @@ export type Transaction = {
   items: SalesItem[]
   date: string
   total: number
+  timestamp: number
+}
+
+export type GlobalTime = {
+  currentDateTime: Date
+  currentDay: string
+  currentTime: string
+  currentDate: string
 }
 
 type AppContextType = {
@@ -80,6 +88,7 @@ type AppContextType = {
   tasks: Task[]
   products: Product[]
   transactions: Transaction[]
+  globalTime: GlobalTime
   login: (name: string, password: string) => boolean
   logout: () => void
   register: (name: string, password: string) => boolean
@@ -96,6 +105,7 @@ type AppContextType = {
   updateProductStock: (productId: number, newStock: number) => void
   addTransaction: (transaction: Omit<Transaction, 'id'>) => void
   getTransactionsByDay: (day: string) => Transaction[]
+  updateGlobalTime: () => void
 }
 
 const AppContext = createContext<AppContextType | null>(null)
@@ -109,10 +119,18 @@ const initialUsers: User[] = [
   { id: 6, name: "FoodSupply", password: "password123", roles: ["supplier"] },
 ]
 
-const initialProducts: Product[] = [
-  { id: 1, name: "Coca-Cola", supplier: "ABC Co", price: 2500, type: "Drink", date: "2026-04-10", stock: 45, minStock: 20 },
-  { id: 2, name: "Chips",      supplier: "Snack LLC", price: 1500, type: "Food", date: "2026-04-09", stock: 8,  minStock: 15 },
-]
+const getGlobalTime = (): GlobalTime => {
+  const now = new Date()
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+  const mongolianDays = ["H Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+  
+  return {
+    currentDateTime: now,
+    currentDay: mongolianDays[now.getDay()],
+    currentTime: now.toLocaleTimeString('mn-MN', { hour: '2-digit', minute: '2-digit' }),
+    currentDate: now.toISOString().split('T')[0]
+  }
+}
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useState<User[]>(initialUsers)
@@ -120,8 +138,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [roleRequests, setRoleRequests] = useState<RoleRequest[]>([])
   const [productRequests, setProductRequests] = useState<ProductRequest[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
-  const [products, setProducts] = useState<Product[]>(initialProducts)
+  const [products, setProducts] = useState<Product[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [globalTime, setGlobalTime] = useState<GlobalTime>(getGlobalTime())
 
   const login = (name: string, password: string): boolean => {
     const user = users.find(u => u.name === name && u.password === password)
@@ -252,7 +271,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             quantity: task.quantity,
             price: product.price || 0
           }],
-          total: transactionTotal
+          total: transactionTotal,
+          timestamp: Date.now()
         }
         setTransactions(prev => [...prev, newTransaction])
       }
@@ -289,15 +309,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return transactions.filter(t => t.day === day)
   }
 
+  const updateGlobalTime = () => {
+    setGlobalTime(getGlobalTime())
+  }
+
   return (
     <AppContext.Provider value={{
-      users, currentUser, roleRequests, productRequests, tasks, products, transactions,
+      users, currentUser, roleRequests, productRequests, tasks, products, transactions, globalTime,
       login, logout, register,
       sendRoleRequest, respondToRoleRequest,
       sendProductRequest, respondToProductRequest,
       addTask, deleteTask, getTasksForEmployee, completeTask,
       addProduct, deleteProduct, updateProductStock,
-      addTransaction, getTransactionsByDay,
+      addTransaction, getTransactionsByDay, updateGlobalTime,
     }}>
       {children}
     </AppContext.Provider>

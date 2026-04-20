@@ -7,12 +7,10 @@ import { Button } from "@/components/ui/button"
 import { useApp } from "@/lib/app-context"
 
 const daysMap = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
-const todayIndex = 1
-const todayName = daysMap[todayIndex]
 
 export default function EmployeeHome() {
-  const { getTasksForEmployee, completeTask } = useApp()
-  const tasksList = getTasksForEmployee("", todayName)
+  const { getTasksForEmployee, completeTask, globalTime } = useApp()
+  const tasksList = getTasksForEmployee("", globalTime.currentDay)
 
   return (
     <main className="min-h-screen bg-background p-6">

@@ -12,7 +12,7 @@ import { useApp } from "@/lib/app-context"
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login } = useApp()
+  const { login, users } = useApp()
   const [name, setName] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -88,8 +88,8 @@ export default function LoginPage() {
 
           <div className="rounded-lg bg-muted p-3 space-y-1">
             <p className="text-xs font-medium text-muted-foreground">Туршилтын акаунтууд (нууц үг: password123)</p>
-            {["Бат — ажилтан", "Сараа — менежер", "Тэмүүжин — ажилтан", "ABC Co — нийлүүлэгч"].map(n => (
-              <p key={n} className="text-xs text-muted-foreground">· {n}</p>
+            {users.map((user: any) => (
+              <p key={user.id} className="text-xs text-muted-foreground">· {user.name} - {user.roles.join(", ")}</p>
             ))}
           </div>
         </CardContent>
