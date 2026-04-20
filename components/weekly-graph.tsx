@@ -10,9 +10,9 @@ import {
   CartesianGrid,
   LabelList,
 } from "recharts"
+import { useApp } from "@/lib/app-context"
 
-// ✅ DATA
-import { weeklyData as data } from "@/lib/weekly-data"
+const DAYS = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
 
 // ✅ CUSTOM TOOLTIP
 function CustomTooltip({ active, payload }: any) {
@@ -58,8 +58,15 @@ function CustomTooltip({ active, payload }: any) {
 }
 
 // ✅ CUSTOM X AXIS LABEL (DAY + TIME)
-const CustomXAxisTick = ({ x, y, payload }: any) => {
-  const item = data.find((d) => d.day === payload.value)
+interface CustomXAxisTickProps {
+  x: number
+  y: number
+  payload: any
+  weeklyData: any[]
+}
+
+const CustomXAxisTick = ({ x, y, payload, weeklyData }: CustomXAxisTickProps) => {
+  const item = weeklyData.find((d) => d.day === payload.value)
 
   return (
     <g transform={`translate(${x},${y})`}>
@@ -95,25 +102,35 @@ interface WeeklyGraphProps {
 }
 
 export default function WeeklyGraph({ employee }: WeeklyGraphProps) {
-  // Filter data by employee if provided
-  const filteredData = employee 
-    ? data.map(d => ({
-        ...d,
-        tasks: d.tasks.filter((task: any) => 
-          task.employee === employee || !task.employee // Show tasks without employee too
-        )
-      }))
-    : data
+  const { tasks } = useApp()
+
+  // Generate weekly data from tasks
+  const weeklyData = DAYS.map((day) => {
+    const dayTasks = employee
+      ? tasks.filter((task) => task.day === day && (task.employee === employee || !task.employee))
+      : tasks.filter((task) => task.day === day)
+
+    // Calculate hours from tasks (simplified - just count tasks as hours)
+    const hours = Math.min(dayTasks.length * 2, 8) // Max 8 hours per day
+
+    return {
+      day,
+      hours,
+      time: hours > 0 ? `${8 + Math.floor(Math.random() * 4)}:00-${16 + Math.floor(Math.random() * 2)}:00` : "Амралт",
+      tasks: dayTasks,
+      reminders: [], // No reminders in new system
+    }
+  })
 
   return (
     <div className="w-full h-[300px]">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={filteredData}>
+        <BarChart data={weeklyData}>
           <CartesianGrid strokeDasharray="3 3" />
 
           <XAxis
             dataKey="day"
-            tick={<CustomXAxisTick />}
+            tick={({ x, y, payload }) => <CustomXAxisTick x={Number(x)} y={Number(y)} payload={payload} weeklyData={weeklyData} />}
             interval={0}
             height={60}
           />
