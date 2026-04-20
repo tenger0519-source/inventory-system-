@@ -16,7 +16,7 @@ function WeeklySalesContent() {
   const { transactions } = useApp()
   const weeklyData = transactions
     .filter((transaction) => transaction.day)
-    .reduce((acc, transaction) => {
+    .reduce((acc: any[], transaction) => {
       const dayIndex = dayOrder.indexOf(transaction.day)
       if (!acc[dayIndex]) {
         acc[dayIndex] = { day: transaction.day, revenue: 0, count: 0 }

@@ -6,11 +6,96 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { useApp } from "@/lib/app-context"
 
-const daysMap = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
+const DAYS = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
+
+// Employee Weekly Plan Component
+function EmployeeWeeklyPlan() {
+  const { tasks, currentUser } = useApp()
+  
+  const getTaskAt = (day: number, hour: number) => {
+    // Find tasks for this employee at this specific day and hour
+    const mainTask = tasks.find(t => 
+      t.day === DAYS[day] && 
+      t.time === `${hour}:00` && 
+      t.employee === currentUser?.name
+    )
+    if (mainTask) return mainTask
+    
+    // Check if this hour is part of a multi-block task
+    for (const task of tasks) {
+      if (task.day === DAYS[day] && 
+          task.employee === currentUser?.name && 
+          task.duration && 
+          task.duration > 1) {
+        const taskHour = parseInt(task.time.split(':')[0])
+        if (hour >= taskHour && hour < taskHour + task.duration) {
+          return task
+        }
+      }
+    }
+    return null
+  }
+
+  const isTaskStart = (day: number, hour: number, task: any) => {
+    return task && task.time === `${hour}:00`
+  }
+
+  return (
+    <div className="overflow-auto">
+      <div className="min-w-[600px]">
+        <div className="grid grid-cols-8 border-b">
+          <div className="p-2 text-muted-foreground">Цаг</div>
+          {DAYS.map(d => <div key={d} className="p-2 text-center border-l text-sm">{d}</div>)}
+        </div>
+        {Array.from({ length: 12 }).map((_, hour) => (
+          <div key={hour} className="grid grid-cols-8 border-b">
+            <div className="p-2 text-xs text-muted-foreground border-r">{8 + hour}:00</div>
+            {DAYS.map((_, dayIndex) => {
+              const task = getTaskAt(dayIndex, 8 + hour)
+              return (
+                <div
+                  key={dayIndex}
+                  className="h-10 border-l relative"
+                >
+                  {task && (
+                    <div 
+                      className={`absolute inset-0 left-0.5 right-0.5 text-white text-xs p-1 rounded overflow-hidden z-10 flex items-center justify-between ${
+                        task.completed ? 'bg-green-600' : 
+                        task.type === 'move' ? 'bg-blue-500' : 
+                        task.type === 'message' ? 'bg-purple-500' : 'bg-gray-500'
+                      }`}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (isTaskStart(dayIndex, 8 + hour, task)) {
+                          alert(`Даалгавар: ${task.action}\nТөрөл: ${task.type}\nТөлөв: ${task.completed ? 'Гүйцэтгэсэн' : 'Хүлээгдэж байна'}\n${task.message || ''}`)
+                        }
+                      }}
+                    >
+                      {isTaskStart(dayIndex, 8 + hour, task) && (
+                        <>
+                          <span className="flex-1 truncate">{task.action}</span>
+                          {task.completed && <span className="text-green-200">!</span>}
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function EmployeeHome() {
-  const { getTasksForEmployee, completeTask, globalTime } = useApp()
-  const tasksList = getTasksForEmployee("", globalTime.currentDay)
+  const { getTasksForEmployee, completeTask, globalTime, currentUser, tasks } = useApp()
+  const tasksList = tasks.filter(task => 
+    task.day === globalTime.currentDay && 
+    task.employee === currentUser?.name && 
+    (task.week === 0 || task.week === undefined)
+  )
 
   return (
     <main className="min-h-screen bg-background p-6">
@@ -18,7 +103,7 @@ export default function EmployeeHome() {
 
         {/* HEADER */}
         <div className="flex items-center justify-between">
-          <Link href="/"><Button variant="outline">← Гарах</Button></Link>
+          <Link href="/"><Button variant="outline">« Гарах</Button></Link>
           <div className="text-right">
             <h1 className="text-2xl font-semibold">Ажилтны хуудас</h1>
             <p className="text-sm text-muted-foreground">Өнөөдрийн ажил болон 7 хоногийн мэдээлэл</p>
@@ -47,11 +132,11 @@ export default function EmployeeHome() {
                       onClick={() => completeTask(task.id)}
                       className="ml-3"
                     >
-                      Complete
+                      Гүйцэтгэх
                     </Button>
                   )}
                   {task.completed && (
-                    <span className="ml-3 text-sm text-green-600 font-medium">Completed</span>
+                    <span className="ml-3 text-sm text-green-600 font-medium">Гүйцэтгэсэн</span>
                   )}
                 </div>
                 {task.type === "move" && (
@@ -88,14 +173,14 @@ export default function EmployeeHome() {
           </CardContent>
         </Card>
 
-        {/* WEEKLY GRAPH */}
+        {/* WEEKLY PLAN VIEW */}
         <Card>
           <CardHeader>
-            <CardTitle>7 хоногийн график</CardTitle>
-            <CardDescription>Ажлын цаг болон даалгаврын мэдээлэл</CardDescription>
+            <CardTitle>7 хоногийн төлөвлөгөө</CardTitle>
+            <CardDescription>Таны ажлын цаг болон даалгаврын мэдээлэл</CardDescription>
           </CardHeader>
           <CardContent>
-            <WeeklyGraph employee="Батболд" />
+            <EmployeeWeeklyPlan />
           </CardContent>
         </Card>
 

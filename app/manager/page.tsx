@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import NotificationBell from "@/components/notification-bell"
 import { useApp } from "@/lib/app-context"
 
-const DAYS = ["H Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+const DAYS = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
 
 export default function ManagerHome() {
   const { tasks, transactions, products, users, globalTime } = useApp()
@@ -47,7 +47,7 @@ export default function ManagerHome() {
 
         {/* HEADER */}
         <div className="flex items-center justify-between">
-          <Link href="/dashboard"><Button variant="outline">← Буцах</Button></Link>
+          <Link href="/dashboard"><Button variant="outline">« Буцах</Button></Link>
           <div className="text-right">
             <h1 className="text-2xl font-semibold">Менежерийн самбар</h1>
             <p className="text-sm text-muted-foreground">Төлөвлөлт, борлуулалт, удирдлага</p>
@@ -71,9 +71,8 @@ export default function ManagerHome() {
             </Link>
             <Link href="/manager/weekly_plan">
               <div className="rounded-lg border p-4 hover:bg-muted transition cursor-pointer space-y-1">
-                <p className="text-sm text-muted-foreground">7 хоног · Сар</p>
+                <p className="text-sm text-muted-foreground">7 хоног</p>
                 <p className="text-xl font-semibold">{weeklyCount} даалгавар</p>
-                <p className="text-sm text-muted-foreground">Сарын нийт: {monthlyCount}</p>
               </div>
             </Link>
           </CardContent>

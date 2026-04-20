@@ -8,8 +8,8 @@ import { useApp } from "@/lib/app-context"
 export default function EmployeeDashboard() {
   const { tasks, transactions, globalTime, currentUser } = useApp()
   
-  // Calculate today's tasks
-  const todayTasks = tasks.filter(task => task.day === globalTime.currentDay && task.employee === currentUser?.name)
+  // Calculate today's tasks (from current week)
+  const todayTasks = tasks.filter(task => task.day === globalTime.currentDay && task.employee === currentUser?.name && (task.week === 0 || task.week === undefined))
   const completedTodayTasks = todayTasks.filter(task => task.completed)
   const pendingTodayTasks = todayTasks.filter(task => !task.completed)
   
@@ -56,7 +56,7 @@ export default function EmployeeDashboard() {
             <div className="rounded-lg border p-4 space-y-1">
               <p className="text-sm text-muted-foreground">Нийт даалгавар</p>
               <p className="text-xl font-semibold">{todayTasks.length}</p>
-              <p className="text-sm text-muted-foreground">{completedTodayTasks} дууссан · {pendingTodayTasks} хүлээ</p>
+              <p className="text-sm text-muted-foreground">{completedTodayTasks.length} дууссан · {pendingTodayTasks.length} хүлээ</p>
             </div>
             <div className="rounded-lg border p-4 space-y-1">
               <p className="text-sm text-muted-foreground">Борлуулсан бараа</p>
@@ -65,7 +65,7 @@ export default function EmployeeDashboard() {
             </div>
             <div className="rounded-lg border p-4 space-y-1">
               <p className="text-sm text-muted-foreground">Ажилласан цаг</p>
-              <p className="text-xl font-semibold">{completedTodayTasks * 2} цаг</p>
+              <p className="text-xl font-semibold">{completedTodayTasks.length * 2} цаг</p>
               <p className="text-sm text-muted-foreground">Үргэлж байна</p>
             </div>
           </CardContent>
@@ -82,7 +82,7 @@ export default function EmployeeDashboard() {
               <div className="rounded-lg border p-4 hover:bg-muted transition cursor-pointer space-y-1">
                 <p className="text-sm text-muted-foreground">7 хоногийн даалгавар</p>
                 <p className="text-xl font-semibold">{weekTasks.length} даалгавар</p>
-                <p className="text-sm text-muted-foreground">{completedWeekTasks} дууссан</p>
+                <p className="text-sm text-muted-foreground">{completedWeekTasks.length} дúussan</p>
                 <p className="text-sm text-muted-foreground">Сарын нийт: {monthlyTasks}</p>
               </div>
             </Link>

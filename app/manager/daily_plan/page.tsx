@@ -12,17 +12,20 @@ import { useApp } from "@/lib/app-context"
 const employees = ["Бат", "Сараа", "Тэмүүжин", "Нараа"]
 const hours = Array.from({ length: 10 }, (_, i) => `${8 + i}:00`)
 const shifts: Record<string, { start: number; end: number }> = {
-  Бат:      { start: 8,  end: 16 },
-  Сараа:    { start: 10, end: 18 },
-  Тэмүүжин: { start: 9,  end: 17 },
-  Нараа:    { start: 8,  end: 14 },
+  "Бат":      { start: 8, end: 16 },
+  "Сараа":    { start: 10, end: 18 },
+  "Тэмүүжин": { start: 9, end: 17 },
+  "Нараа":    { start: 8, end: 14 },
 }
 
-type LocalTask = { id: string; employee: string; hour: string; title: string; description: string }
+type LocalTask = { id: string; employee: string; hour: string; title: string; description: string; week: number; duration: number }
 
 export default function DailyPlanPage() {
   const router = useRouter()
-  const { tasks, addTask, deleteTask } = useApp()
+  const { tasks, addTask, deleteTask, users, getConfirmedMoveRequests, assignMoveRequest } = useApp()
+  
+  // Get dynamic employee list from users with employee role
+  const EMPLOYEES = users.filter(u => u.roles.includes("employee")).map(u => u.name)
   const [selectedCell, setSelectedCell] = useState<{ employee: string; hour: string } | null>(null)
   const [title, setTitle] = useState("")
   const [desc, setDesc] = useState("")
@@ -32,6 +35,9 @@ export default function DailyPlanPage() {
   const [from, setFrom] = useState("")
   const [to, setTo] = useState("")
   const [shelf, setShelf] = useState("")
+  const [selectedRequest, setSelectedRequest] = useState("")
+
+  const confirmedRequests = getConfirmedMoveRequests()
 
   const handleAddTask = () => {
     if (!selectedCell || !title) return
@@ -40,19 +46,34 @@ export default function DailyPlanPage() {
     const today = daysMap[new Date().getDay()]
     
     if (taskType === "move") {
-      addTask({
-        type: "move",
-        time: selectedCell.hour,
-        action: title,
-        employee: selectedCell.employee,
-        product: product || undefined,
-        quantity: quantity ? parseInt(quantity) : undefined,
-        from: from || undefined,
-        to: to || undefined,
-        shelf: shelf || undefined,
-        day: today,
-        message: desc,
-      })
+      // Check if there's a selected request
+      const selectedRequestData = confirmedRequests.find(r => r.id === selectedRequest)
+      
+      if (selectedRequestData) {
+        // Use confirmed request data
+        addTask({
+          type: "move",
+          time: selectedCell.hour,
+          action: title,
+          employee: selectedCell.employee,
+          product: selectedRequestData.product,
+          quantity: selectedRequestData.quantity,
+          from: selectedRequestData.from,
+          to: selectedRequestData.to,
+          shelf: selectedRequestData.shelf,
+          day: today,
+          week: 0,
+          duration: 1,
+          message: desc,
+        })
+        
+        // Assign the request to this employee
+        assignMoveRequest(selectedRequestData.id, selectedCell.employee)
+      } else {
+        // No confirmed request selected - prevent task creation
+        alert("Бараа зөөх даалгавар үүсгэхээс өмнө батлагдсан хүсэлтийг сонгоно уу!")
+        return
+      }
     } else if (taskType === "message") {
       addTask({
         type: "message",
@@ -61,6 +82,8 @@ export default function DailyPlanPage() {
         employee: selectedCell.employee,
         message: desc,
         day: today,
+        week: 0,
+        duration: 1,
       })
     } else {
       addTask({
@@ -70,6 +93,8 @@ export default function DailyPlanPage() {
         employee: selectedCell.employee,
         message: desc,
         day: today,
+        week: 0,
+        duration: 1,
       })
     }
     
@@ -82,6 +107,7 @@ export default function DailyPlanPage() {
     setTo("")
     setShelf("")
     setTaskType("general")
+    setSelectedRequest("")
   }
 
   const handleDeleteTask = (id: string) => deleteTask(id)
@@ -109,14 +135,14 @@ export default function DailyPlanPage() {
             <div className="min-w-[700px]">
               <div className="grid grid-cols-[80px_repeat(4,1fr)] border-b">
                 <div />
-                {employees.map(emp => (
+                {EMPLOYEES.slice(0, 4).map(emp => (
                   <div key={emp} className="p-2 text-center text-sm font-medium border-l">{emp}</div>
                 ))}
               </div>
               {hours.map((hour, i) => (
                 <div key={hour} className="grid grid-cols-[80px_repeat(4,1fr)] border-b">
                   <div className="p-2 text-xs text-muted-foreground flex items-center">{hour}</div>
-                  {employees.map(emp => {
+                  {EMPLOYEES.slice(0, 4).map(emp => {
                     const shift = shifts[emp]
                     const hourNum = 8 + i
                     const isWorking = shift && hourNum >= shift.start && hourNum < shift.end
@@ -170,13 +196,31 @@ export default function DailyPlanPage() {
               <Textarea placeholder="Тайлбар" value={desc} onChange={e => setDesc(e.target.value)} />
               
               {taskType === "move" && (
-                <div className="grid grid-cols-2 gap-3">
-                  <Input placeholder="Бараа" value={product} onChange={e => setProduct(e.target.value)} />
-                  <Input placeholder="Тоо хэмжээ" value={quantity} onChange={e => setQuantity(e.target.value)} />
-                  <Input placeholder="Хаанаас" value={from} onChange={e => setFrom(e.target.value)} />
-                  <Input placeholder="Хаашаа" value={to} onChange={e => setTo(e.target.value)} />
-                  <Input placeholder="Тавиур" value={shelf} onChange={e => setShelf(e.target.value)} />
-                </div>
+                <>
+                  {confirmedRequests.length > 0 ? (
+                    <div>
+                      <label className="text-sm font-medium">Батлагдсан хөдөлгөөний хүсэлт:</label>
+                      <Select value={selectedRequest} onValueChange={setSelectedRequest}>
+                        <SelectTrigger className="w-full mt-1">
+                          <SelectValue placeholder="Батлагдсан хөдөлгөөний хүсэлт сонгоно уу" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {confirmedRequests.map(request => (
+                            <SelectItem key={request.id} value={request.id}>
+                              {request.product} ({request.quantity}pcs) - {request.from} - {request.to}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                      <p className="text-sm text-yellow-800">
+                        Батлагдсан хөдөлгөөний хүсэлт байхгүй байна. Эхлээд хөдөлгөөний хүсэлт үүсгэнэ үү.
+                      </p>
+                    </div>
+                  )}
+                </>
               )}
               
               <div className="flex gap-2">

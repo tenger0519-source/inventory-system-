@@ -9,15 +9,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input"
 import { useApp } from "@/lib/app-context"
 
-const DAYS = ["H Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+const DAYS = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
 
 export default function WeeklyPlanPage() {
   const router = useRouter()
-  const { tasks, addTask, deleteTask, users } = useApp()
+  const { tasks, addTask, deleteTask, users, getConfirmedMoveRequests, assignMoveRequest } = useApp()
   
   // Get dynamic employee list from users with employee role
   const EMPLOYEES = users.filter(u => u.roles.includes("employee")).map(u => u.name)
-  const [weekIndex, setWeekIndex] = useState(0)
   const [selectedEmployee, setSelectedEmployee] = useState<string>("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [pendingTask, setPendingTask] = useState<{ day: number; hour: number } | null>(null)
@@ -30,6 +29,9 @@ export default function WeeklyPlanPage() {
   const [to, setTo] = useState("")
   const [shelf, setShelf] = useState("")
   const [message, setMessage] = useState("")
+  const [selectedRequest, setSelectedRequest] = useState<string>("")
+
+  const confirmedRequests = getConfirmedMoveRequests()
 
   const handleAddTask = (day: number, hour: number) => {
     setPendingTask({ day, hour })
@@ -42,19 +44,34 @@ export default function WeeklyPlanPage() {
     const duration = Math.min(Math.max(Number(taskDuration), 1), 4)
     
     if (taskType === "move") {
-      addTask({
-        type: "move",
-        time: `${pendingTask.hour}:00`,
-        action: taskTitle,
-        employee: selectedEmployee,
-        product: product || undefined,
-        quantity: quantity ? parseInt(quantity) : undefined,
-        from: from || undefined,
-        to: to || undefined,
-        shelf: shelf || undefined,
-        day: DAYS[pendingTask.day],
-        message: message,
-      })
+      // Check if there's a selected request
+      const selectedRequestData = confirmedRequests.find(r => r.id === selectedRequest)
+      
+      if (selectedRequestData) {
+        // Use confirmed request data
+        addTask({
+          type: "move",
+          time: `${pendingTask.hour}:00`,
+          action: taskTitle,
+          employee: selectedEmployee,
+          product: selectedRequestData.product,
+          quantity: selectedRequestData.quantity,
+          from: selectedRequestData.from,
+          to: selectedRequestData.to,
+          shelf: selectedRequestData.shelf,
+          day: DAYS[pendingTask.day],
+          week: 0,
+          duration: duration,
+          message: message,
+        })
+        
+        // Assign the request to this employee
+        assignMoveRequest(selectedRequestData.id, selectedEmployee)
+      } else {
+        // No confirmed request selected - prevent task creation
+        alert("Бараа зөөх даалгавар үүсгэхээс өмнө батлагдсан хүсэлтийг сонгоно уу!")
+        return
+      }
     } else if (taskType === "message") {
       addTask({
         type: "message",
@@ -63,6 +80,8 @@ export default function WeeklyPlanPage() {
         employee: selectedEmployee,
         message: message,
         day: DAYS[pendingTask.day],
+        week: 0,
+        duration: duration,
       })
     } else {
       addTask({
@@ -72,6 +91,8 @@ export default function WeeklyPlanPage() {
         employee: selectedEmployee,
         message: message,
         day: DAYS[pendingTask.day],
+        week: 0,
+        duration: duration,
       })
     }
     
@@ -87,10 +108,29 @@ export default function WeeklyPlanPage() {
     setTo("")
     setShelf("")
     setMessage("")
+    setSelectedRequest("")
   }
 
-  const getTaskAt = (day: number, hour: number) =>
-    tasks.find(t => t.day === DAYS[day] && t.time === `${hour}:00`)
+  const getTaskAt = (day: number, hour: number) => {
+    // Find the main task at this hour
+    const mainTask = tasks.find(t => t.day === DAYS[day] && t.time === `${hour}:00`)
+    if (mainTask) return mainTask
+    
+    // Check if this hour is part of a multi-block task
+    for (const task of tasks) {
+      if (task.day === DAYS[day] && task.duration && task.duration > 1) {
+        const taskHour = parseInt(task.time.split(':')[0])
+        if (hour >= taskHour && hour < taskHour + task.duration) {
+          return task
+        }
+      }
+    }
+    return null
+  }
+
+  const isTaskStart = (day: number, hour: number, task: any) => {
+    return task && task.time === `${hour}:00`
+  }
 
   return (
     <main className="min-h-screen bg-background p-6">
@@ -101,7 +141,7 @@ export default function WeeklyPlanPage() {
           <Button variant="outline" onClick={() => router.push('/manager')}>← Буцах</Button>
           <div className="text-right">
             <h1 className="text-2xl font-semibold">7 хоногийн төлөвлөгөө</h1>
-            <p className="text-sm text-muted-foreground">{weekIndex + 1}-р долоо хоног</p>
+            <p className="text-sm text-muted-foreground">1-р долоо хоног</p>
           </div>
         </div>
 
@@ -129,8 +169,37 @@ export default function WeeklyPlanPage() {
                         className="h-10 border-l relative cursor-pointer hover:bg-muted transition"
                       >
                         {task && (
-                          <div className="absolute inset-0 left-0.5 right-0.5 bg-blue-500 text-white text-xs p-1 rounded overflow-hidden z-10">
-                            {task.action}
+                          <div 
+                            className={`absolute inset-0 left-0.5 right-0.5 text-white text-xs p-1 rounded overflow-hidden z-10 flex items-center justify-between ${
+                              task.completed ? 'bg-green-600' : 
+                              task.type === 'move' ? 'bg-blue-500' : 
+                              task.type === 'message' ? 'bg-purple-500' : 'bg-gray-500'
+                            }`}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              if (isTaskStart(dayIndex, hour, task)) {
+                                // Show task details dialog
+                                alert(`Даалгавар: ${task.action}\nАжилтан: ${task.employee}\nТөрөл: ${task.type}\nТөлөв: ${task.completed ? 'Гүйцэтгэсэн' : 'Хүлээгдэж байна'}\n${task.message || ''}`)
+                              }
+                            }}
+                          >
+                            {isTaskStart(dayIndex, hour, task) && (
+                              <>
+                                <span className="flex-1 truncate">{task.action}</span>
+                                <div className="flex items-center space-x-1">
+                                  {task.completed && <span className="text-green-200">!</span>}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      deleteTask(task.id)
+                                    }}
+                                    className="text-red-300 hover:text-red-100 ml-1 text-xs"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              </>
+                            )}
                           </div>
                         )}
                       </div>
@@ -141,12 +210,6 @@ export default function WeeklyPlanPage() {
             </div>
           </CardContent>
         </Card>
-
-        {/* WEEK NAV */}
-        <div className="flex justify-between">
-          <Button variant="outline" onClick={() => setWeekIndex(w => Math.max(0, w - 1))} disabled={weekIndex === 0}>← Өмнөх долоо хоног</Button>
-          <Button variant="outline" onClick={() => setWeekIndex(w => w + 1)}>Дараагийн долоо хоног →</Button>
-        </div>
 
         {/* EMPLOYEE SELECTION DIALOG */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -185,19 +248,37 @@ export default function WeeklyPlanPage() {
               <Input placeholder="Үргэлжлэх хугацаа (цаг)" value={taskDuration} onChange={e => setTaskDuration(e.target.value)} />
               
               {taskType === "move" && (
-                <div className="grid grid-cols-2 gap-3">
-                  <Input placeholder="Бараа" value={product} onChange={e => setProduct(e.target.value)} />
-                  <Input placeholder="Тоо хэмжээ" value={quantity} onChange={e => setQuantity(e.target.value)} />
-                  <Input placeholder="Хаанаас" value={from} onChange={e => setFrom(e.target.value)} />
-                  <Input placeholder="Хаашаа" value={to} onChange={e => setTo(e.target.value)} />
-                  <Input placeholder="Тавиур" value={shelf} onChange={e => setShelf(e.target.value)} />
-                </div>
+                <>
+                  {confirmedRequests.length > 0 ? (
+                    <div>
+                      <label className="text-sm font-medium">Батлагдсан хөдөлгөөний хүсэлт:</label>
+                      <Select value={selectedRequest} onValueChange={setSelectedRequest}>
+                        <SelectTrigger className="w-full mt-1">
+                          <SelectValue placeholder="Батлагдсан хөдөлгөөний хүсэлт сонгоно уу" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {confirmedRequests.map(request => (
+                            <SelectItem key={request.id} value={request.id}>
+                              {request.product} ({request.quantity}pcs) - {request.from} - {request.to}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                      <p className="text-sm text-yellow-800">
+                        Батлагдсан хөдөлгөөний хүсэлт байхгүй байна. Эхлээд хөдөлгөөний хүсэлт үүсгэнэ үү.
+                      </p>
+                    </div>
+                  )}
+                </>
               )}
               
               <Input placeholder="Нэмэлт мэдээлэл" value={message} onChange={e => setMessage(e.target.value)} />
               
               <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Цуцлах</Button>
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Болих</Button>
                 <Button onClick={confirmAddTask} disabled={!selectedEmployee || !taskTitle}>Хадгалах</Button>
               </div>
             </div>

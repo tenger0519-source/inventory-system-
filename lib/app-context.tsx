@@ -29,6 +29,19 @@ export type ProductRequest = {
   status: "pending" | "accepted" | "declined"
 }
 
+export type MoveRequest = {
+  id: string
+  product: string
+  quantity: number
+  from: string
+  to: string
+  shelf?: string
+  requestedBy: "manager" | "supplier"
+  status: "pending" | "confirmed"
+  createdAt: string
+  assignedTo?: string
+}
+
 export type Task = {
   id: string
   type: "move" | "message" | "general"
@@ -43,6 +56,8 @@ export type Task = {
   message?: string
   day?: string
   date?: string
+  week?: number
+  duration?: number
   completed?: boolean
 }
 
@@ -87,6 +102,7 @@ type AppContextType = {
   currentUser: User | null
   roleRequests: RoleRequest[]
   productRequests: ProductRequest[]
+  moveRequests: MoveRequest[]
   tasks: Task[]
   products: Product[]
   transactions: Transaction[]
@@ -98,6 +114,10 @@ type AppContextType = {
   respondToRoleRequest: (requestId: number, accept: boolean) => void
   sendProductRequest: (toUserId: number, type: "give" | "take", product: string, quantity: number) => void
   respondToProductRequest: (requestId: number, accept: boolean) => void
+  addMoveRequest: (request: Omit<MoveRequest, 'id' | 'createdAt'>) => void
+  confirmMoveRequest: (requestId: string) => void
+  assignMoveRequest: (requestId: string, employeeName: string) => void
+  getConfirmedMoveRequests: () => MoveRequest[]
   addTask: (task: Omit<Task, 'id'>) => void
   deleteTask: (taskId: string) => void
   getTasksForEmployee: (employeeName: string, day?: string) => Task[]
@@ -124,7 +144,7 @@ const initialUsers: User[] = [
 const getGlobalTime = (): GlobalTime => {
   const now = new Date()
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-  const mongolianDays = ["H Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+  const mongolianDays = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
   
   return {
     currentDateTime: now,
@@ -139,6 +159,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [roleRequests, setRoleRequests] = useState<RoleRequest[]>([])
   const [productRequests, setProductRequests] = useState<ProductRequest[]>([])
+  const [moveRequests, setMoveRequests] = useState<MoveRequest[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
@@ -311,16 +332,43 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return transactions.filter(t => t.day === day)
   }
 
+  const addMoveRequest = (request: Omit<MoveRequest, 'id' | 'createdAt'>) => {
+    if (!currentUser) return
+    const newRequest: MoveRequest = {
+      ...request,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+    }
+    setMoveRequests(prev => [...prev, newRequest])
+  }
+
+  const confirmMoveRequest = (requestId: string) => {
+    setMoveRequests(prev => prev.map(r =>
+      r.id === requestId ? { ...r, status: "confirmed" } : r
+    ))
+  }
+
+  const assignMoveRequest = (requestId: string, employeeName: string) => {
+    setMoveRequests(prev => prev.map(r =>
+      r.id === requestId ? { ...r, assignedTo: employeeName } : r
+    ))
+  }
+
+  const getConfirmedMoveRequests = (): MoveRequest[] => {
+    return moveRequests.filter(r => r.status === "confirmed" && r.assignedTo === undefined)
+  }
+
   const updateGlobalTime = () => {
     setGlobalTime(getGlobalTime())
   }
 
   return (
     <AppContext.Provider value={{
-      users, currentUser, roleRequests, productRequests, tasks, products, transactions, globalTime,
+      users, currentUser, roleRequests, productRequests, moveRequests, tasks, products, transactions, globalTime,
       login, logout, register,
       sendRoleRequest, respondToRoleRequest,
       sendProductRequest, respondToProductRequest,
+      addMoveRequest, confirmMoveRequest, assignMoveRequest, getConfirmedMoveRequests,
       addTask, deleteTask, getTasksForEmployee, completeTask,
       addProduct, deleteProduct, updateProductStock,
       addTransaction, getTransactionsByDay, updateGlobalTime,

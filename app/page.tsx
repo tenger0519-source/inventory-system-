@@ -8,11 +8,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useApp } from "@/lib/app-context"
+import { useSupabaseApp } from "@/lib/supabase-app-context"
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login, users } = useApp()
+  const { login, users, loading } = useSupabaseApp()
   const [name, setName] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -22,14 +22,25 @@ export default function LoginPage() {
     e.preventDefault()
     setError("")
     setIsLoading(true)
-    await new Promise(r => setTimeout(r, 400))
-    const success = login(name, password)
+    const success = await login(name, password)
     if (success) {
       router.push("/dashboard")
     } else {
       setError("Нэр эсвэл нууц үг буруу байна.")
     }
     setIsLoading(false)
+  }
+
+  if (loading) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="flex items-center justify-center h-32">
+            <p>Loading...</p>
+          </CardContent>
+        </Card>
+      </main>
+    )
   }
 
   return (

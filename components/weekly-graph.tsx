@@ -25,14 +25,21 @@ function CustomTooltip({ active, payload }: any) {
         <p>⏰ {d.hours} цаг</p>
         <p>🕒 {d.time}</p>
 
-        {/* TASKS - SHOW ONLY TITLES */}
+        {/* TASKS - SHOW TITLES AND TYPES */}
         {Array.isArray(d.tasks) && d.tasks.length > 0 && (
           <div className="mt-2">
-            <p className="font-medium">Даалгавар:</p>
-            <ul className="list-disc ml-4">
+            <p className="font-medium">Yesgavar:</p>
+            <ul className="list-disc ml-4 space-y-1">
               {d.tasks.map((task: any, i: number) => (
-                <li key={i}>
-                  {task.title || (task.type === "move" ? task.product : task.message)}
+                <li key={i} className="flex items-center space-x-2">
+                  <span className={`px-2 py-1 rounded text-xs text-white ${
+                    task.type === 'move' ? 'bg-blue-500' : 
+                    task.type === 'message' ? 'bg-purple-500' : 'bg-gray-500'
+                  }`}>
+                    {task.type}
+                  </span>
+                  <span>{task.action}</span>
+                  {task.completed && <span className="text-green-600">!</span>}
                 </li>
               ))}
             </ul>
@@ -110,13 +117,21 @@ export default function WeeklyGraph({ employee }: WeeklyGraphProps) {
       ? tasks.filter((task) => task.day === day && (task.employee === employee || !task.employee))
       : tasks.filter((task) => task.day === day)
 
-    // Calculate hours from tasks (simplified - just count tasks as hours)
-    const hours = Math.min(dayTasks.length * 2, 8) // Max 8 hours per day
+    // Calculate total hours from task durations
+    const hours = dayTasks.reduce((total, task) => {
+      return total + (task.duration || 1)
+    }, 0)
+
+    // Get time range from tasks
+    const taskTimes = dayTasks.map(t => parseInt(t.time.split(':')[0])).sort((a, b) => a - b)
+    const timeRange = taskTimes.length > 0 
+      ? `${taskTimes[0]}:00-${Math.max(...taskTimes) + 1}:00` 
+      : "Амралт"
 
     return {
       day,
-      hours,
-      time: hours > 0 ? `${8 + Math.floor(Math.random() * 4)}:00-${16 + Math.floor(Math.random() * 2)}:00` : "Амралт",
+      hours: Math.min(hours, 8), // Max 8 hours per day
+      time: timeRange,
       tasks: dayTasks,
       reminders: [], // No reminders in new system
     }
