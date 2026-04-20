@@ -4,13 +4,13 @@ import Link from "next/link"
 import WeeklyGraph from "@/components/weekly-graph"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { useApp } from "@/lib/app-context"
+import { useSupabaseApp } from "@/lib/supabase-app-context"
 
 const DAYS = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
 
 // Employee Weekly Plan Component
 function EmployeeWeeklyPlan() {
-  const { tasks, currentUser } = useApp()
+  const { tasks, currentUser, loading } = useSupabaseApp()
   
   const getTaskAt = (day: number, hour: number) => {
     // Find tasks for this employee at this specific day and hour

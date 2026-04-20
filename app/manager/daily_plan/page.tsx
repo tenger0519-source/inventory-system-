@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useApp } from "@/lib/app-context"
+import { useSupabaseApp } from "@/lib/supabase-app-context"
 
 const employees = ["Бат", "Сараа", "Тэмүүжин", "Нараа"]
 const hours = Array.from({ length: 10 }, (_, i) => `${8 + i}:00`)
@@ -22,7 +22,7 @@ type LocalTask = { id: string; employee: string; hour: string; title: string; de
 
 export default function DailyPlanPage() {
   const router = useRouter()
-  const { tasks, addTask, deleteTask, users, getConfirmedMoveRequests, assignMoveRequest } = useApp()
+  const { tasks, addTask, deleteTask, users, getConfirmedMoveRequests, assignMoveRequest, loading } = useSupabaseApp()
   
   // Get dynamic employee list from users with employee role
   const EMPLOYEES = users.filter(u => u.roles.includes("employee")).map(u => u.name)
@@ -39,7 +39,7 @@ export default function DailyPlanPage() {
 
   const confirmedRequests = getConfirmedMoveRequests()
 
-  const handleAddTask = () => {
+  const handleAddTask = async () => {
     if (!selectedCell || !title) return
     
     const daysMap = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
@@ -51,7 +51,7 @@ export default function DailyPlanPage() {
       
       if (selectedRequestData) {
         // Use confirmed request data
-        addTask({
+        await addTask({
           type: "move",
           time: selectedCell.hour,
           action: title,
@@ -68,14 +68,14 @@ export default function DailyPlanPage() {
         })
         
         // Assign the request to this employee
-        assignMoveRequest(selectedRequestData.id, selectedCell.employee)
+        await assignMoveRequest(selectedRequestData.id, selectedCell.employee)
       } else {
         // No confirmed request selected - prevent task creation
         alert("Бараа зөөх даалгавар үүсгэхээс өмнө батлагдсан хүсэлтийг сонгоно уу!")
         return
       }
     } else if (taskType === "message") {
-      addTask({
+      await addTask({
         type: "message",
         time: selectedCell.hour,
         action: title,
@@ -86,7 +86,7 @@ export default function DailyPlanPage() {
         duration: 1,
       })
     } else {
-      addTask({
+      await addTask({
         type: "general",
         time: selectedCell.hour,
         action: title,
@@ -110,7 +110,7 @@ export default function DailyPlanPage() {
     setSelectedRequest("")
   }
 
-  const handleDeleteTask = (id: string) => deleteTask(id)
+  const handleDeleteTask = async (id: string) => await deleteTask(id)
 
   return (
     <main className="min-h-screen bg-background p-6">

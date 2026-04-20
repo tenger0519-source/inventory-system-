@@ -3,10 +3,10 @@
 import { useState } from "react"
 import { Bell } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useApp } from "@/lib/app-context"
+import { useSupabaseApp } from "@/lib/supabase-app-context"
 
 export default function NotificationBell() {
-  const { currentUser, productRequests, respondToProductRequest, users } = useApp()
+  const { currentUser, productRequests, respondToProductRequest, users } = useSupabaseApp()
   const [open, setOpen] = useState(false)
 
   if (!currentUser) return null
@@ -74,7 +74,7 @@ export default function NotificationBell() {
                         <Button
                           size="sm"
                           className="flex-1"
-                          onClick={() => respondToProductRequest(r.id, true)}
+                          onClick={async () => await respondToProductRequest(r.id, true)}
                         >
                           Зөвшөөрөх
                         </Button>
@@ -82,7 +82,7 @@ export default function NotificationBell() {
                           size="sm"
                           variant="outline"
                           className="flex-1"
-                          onClick={() => respondToProductRequest(r.id, false)}
+                          onClick={async () => await respondToProductRequest(r.id, false)}
                         >
                           Татгалзах
                         </Button>

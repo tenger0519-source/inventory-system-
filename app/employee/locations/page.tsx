@@ -6,13 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableCell, TableHead } from "@/components/ui/table";
-import { useApp } from "@/lib/app-context";
+import { useSupabaseApp } from "@/lib/supabase-app-context";
 
 const products = [];
 
 export default function LocationsPage() {
   const router = useRouter();
-  const { products } = useApp();
+  const { products, loading } = useSupabaseApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [sectorFilter, setSectorFilter] = useState('');
   const [filteredProducts, setFilteredProducts] = useState(products);

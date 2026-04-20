@@ -7,13 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
-import { useApp } from "@/lib/app-context"
+import { useSupabaseApp } from "@/lib/supabase-app-context"
 
 const DAYS = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
 
 export default function WeeklyPlanPage() {
   const router = useRouter()
-  const { tasks, addTask, deleteTask, users, getConfirmedMoveRequests, assignMoveRequest } = useApp()
+  const { tasks, addTask, deleteTask, users, getConfirmedMoveRequests, assignMoveRequest, loading } = useSupabaseApp()
   
   // Get dynamic employee list from users with employee role
   const EMPLOYEES = users.filter(u => u.roles.includes("employee")).map(u => u.name)
@@ -38,7 +38,7 @@ export default function WeeklyPlanPage() {
     setIsDialogOpen(true)
   }
 
-  const confirmAddTask = () => {
+  const confirmAddTask = async () => {
     if (!pendingTask || !selectedEmployee || !taskTitle) return
     
     const duration = Math.min(Math.max(Number(taskDuration), 1), 4)
@@ -49,7 +49,7 @@ export default function WeeklyPlanPage() {
       
       if (selectedRequestData) {
         // Use confirmed request data
-        addTask({
+        await addTask({
           type: "move",
           time: `${pendingTask.hour}:00`,
           action: taskTitle,
@@ -66,14 +66,14 @@ export default function WeeklyPlanPage() {
         })
         
         // Assign the request to this employee
-        assignMoveRequest(selectedRequestData.id, selectedEmployee)
+        await assignMoveRequest(selectedRequestData.id, selectedEmployee)
       } else {
         // No confirmed request selected - prevent task creation
         alert("Бараа зөөх даалгавар үүсгэхээс өмнө батлагдсан хүсэлтийг сонгоно уу!")
         return
       }
     } else if (taskType === "message") {
-      addTask({
+      await addTask({
         type: "message",
         time: `${pendingTask.hour}:00`,
         action: taskTitle,
@@ -84,7 +84,7 @@ export default function WeeklyPlanPage() {
         duration: duration,
       })
     } else {
-      addTask({
+      await addTask({
         type: "general",
         time: `${pendingTask.hour}:00`,
         action: taskTitle,
@@ -189,9 +189,9 @@ export default function WeeklyPlanPage() {
                                 <div className="flex items-center space-x-1">
                                   {task.completed && <span className="text-green-200">!</span>}
                                   <button
-                                    onClick={(e) => {
+                                    onClick={async (e) => {
                                       e.stopPropagation()
-                                      deleteTask(task.id)
+                                      await deleteTask(task.id)
                                     }}
                                     className="text-red-300 hover:text-red-100 ml-1 text-xs"
                                   >

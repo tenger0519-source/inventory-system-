@@ -3,10 +3,10 @@
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { useApp } from "@/lib/app-context"
+import { useSupabaseApp } from "@/lib/supabase-app-context"
 
 export default function EmployeeDashboard() {
-  const { tasks, transactions, globalTime, currentUser } = useApp()
+  const { tasks, transactions, globalTime, currentUser, loading } = useSupabaseApp()
   
   // Calculate today's tasks (from current week)
   const todayTasks = tasks.filter(task => task.day === globalTime.currentDay && task.employee === currentUser?.name && (task.week === 0 || task.week === undefined))

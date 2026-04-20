@@ -8,11 +8,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useApp } from "@/lib/app-context"
+import { useSupabaseApp } from "@/lib/supabase-app-context"
 
 export default function RegisterPage() {
   const router = useRouter()
-  const { register } = useApp()
+  const { register, loading } = useSupabaseApp()
   const [name, setName] = useState("")
   const [password, setPassword] = useState("")
   const [confirm, setConfirm] = useState("")
@@ -28,17 +28,15 @@ export default function RegisterPage() {
       return
     }
     if (password.length < 6) {
-      setError("Нууц үг хамгийн багадаа 6 тэмдэгт байх ёстой.")
+      setError("Нууц үг хамгийн багадаа 6 тэмдэгтэй байх.")
       return
     }
-
     setIsLoading(true)
-    await new Promise(r => setTimeout(r, 400))
-    const success = register(name, password)
+    const success = await register(name, password)
     if (success) {
       router.push("/dashboard")
     } else {
-      setError("Энэ нэр аль хэдийн бүртгэлтэй байна.")
+      setError("Энэ нэр хэрэглэгдэж байна.")
     }
     setIsLoading(false)
   }
