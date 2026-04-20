@@ -5,24 +5,22 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { useApp } from "@/lib/app-context"
 
 type Product = { id: number; name: string; supplier: string; price: number; type: string; date: string; stock: number; minStock: number }
 
 export default function ProductsPage() {
   const router = useRouter()
-  const [products, setProducts] = useState<Product[]>([
-    { id: 1, name: "Кока-Кола", supplier: "ABC Co",    price: 2500, type: "Ундаа", date: "2026-04-10", stock: 45, minStock: 20 },
-    { id: 2, name: "Чипс",      supplier: "Snack LLC", price: 1500, type: "Хоол",  date: "2026-04-09", stock: 8,  minStock: 15 },
-  ])
+  const { products, addProduct, deleteProduct } = useApp()
   const [search, setSearch] = useState("")
   const [form, setForm] = useState<Omit<Product, "id">>({ name: "", supplier: "", price: 0, type: "", date: "", stock: 0, minStock: 0 })
 
-  const addProduct = () => {
+  const handleAddProduct = () => {
     if (!form.name) return
-    setProducts([{ id: Date.now(), ...form }, ...products])
+    addProduct(form)
     setForm({ name: "", supplier: "", price: 0, type: "", date: "", stock: 0, minStock: 0 })
   }
-  const deleteProduct = (id: number) => setProducts(products.filter(p => p.id !== id))
+
   const filtered = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
 
   const getStockStatus = (stock: number, minStock: number) => {
@@ -57,7 +55,7 @@ export default function ProductsPage() {
             <Input placeholder="Stock" type="number" value={form.stock} onChange={e => setForm({ ...form, stock: Number(e.target.value) })} />
             <Input placeholder="Min Stock" type="number" value={form.minStock} onChange={e => setForm({ ...form, minStock: Number(e.target.value) })} />
             <Input type="date"                value={form.date}     onChange={e => setForm({ ...form, date: e.target.value })} />
-            <Button onClick={addProduct} className="self-end">Нэмэх</Button>
+            <Button onClick={handleAddProduct} className="self-end">Нэмэх</Button>
           </CardContent>
         </Card>
 

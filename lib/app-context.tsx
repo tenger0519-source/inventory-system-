@@ -43,6 +43,33 @@ export type Task = {
   message?: string
   day?: string
   date?: string
+  completed?: boolean
+}
+
+export type Product = {
+  id: number
+  name: string
+  supplier: string
+  price: number
+  type: string
+  date: string
+  stock: number
+  minStock: number
+}
+
+export type SalesItem = {
+  product: string
+  quantity: number
+  price: number
+}
+
+export type Transaction = {
+  id: number
+  worker: string
+  day: string
+  items: SalesItem[]
+  date: string
+  total: number
 }
 
 type AppContextType = {
@@ -51,6 +78,8 @@ type AppContextType = {
   roleRequests: RoleRequest[]
   productRequests: ProductRequest[]
   tasks: Task[]
+  products: Product[]
+  transactions: Transaction[]
   login: (name: string, password: string) => boolean
   logout: () => void
   register: (name: string, password: string) => boolean
@@ -61,17 +90,28 @@ type AppContextType = {
   addTask: (task: Omit<Task, 'id'>) => void
   deleteTask: (taskId: string) => void
   getTasksForEmployee: (employeeName: string, day?: string) => Task[]
+  completeTask: (taskId: string) => void
+  addProduct: (product: Omit<Product, 'id'>) => void
+  deleteProduct: (productId: number) => void
+  updateProductStock: (productId: number, newStock: number) => void
+  addTransaction: (transaction: Omit<Transaction, 'id'>) => void
+  getTransactionsByDay: (day: string) => Transaction[]
 }
 
 const AppContext = createContext<AppContextType | null>(null)
 
 const initialUsers: User[] = [
-  { id: 1, name: "Бат",        password: "password123", roles: ["employee"] },
-  { id: 2, name: "Сараа",      password: "password123", roles: ["manager"]  },
-  { id: 3, name: "Тэмүүжин",  password: "password123", roles: ["employee"] },
-  { id: 4, name: "Номин",      password: "password123", roles: ["employee"] },
+  { id: 1, name: "Bat",        password: "password123", roles: ["employee"] },
+  { id: 2, name: "Saraa",      password: "password123", roles: ["manager"]  },
+  { id: 3, name: "Temuujin",  password: "password123", roles: ["employee"] },
+  { id: 4, name: "Nomin",      password: "password123", roles: ["employee"] },
   { id: 5, name: "ABC Co",     password: "password123", roles: ["supplier"] },
   { id: 6, name: "FoodSupply", password: "password123", roles: ["supplier"] },
+]
+
+const initialProducts: Product[] = [
+  { id: 1, name: "Coca-Cola", supplier: "ABC Co", price: 2500, type: "Drink", date: "2026-04-10", stock: 45, minStock: 20 },
+  { id: 2, name: "Chips",      supplier: "Snack LLC", price: 1500, type: "Food", date: "2026-04-09", stock: 8,  minStock: 15 },
 ]
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -80,6 +120,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [roleRequests, setRoleRequests] = useState<RoleRequest[]>([])
   const [productRequests, setProductRequests] = useState<ProductRequest[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
+  const [products, setProducts] = useState<Product[]>(initialProducts)
+  const [transactions, setTransactions] = useState<Transaction[]>([])
 
   const login = (name: string, password: string): boolean => {
     const user = users.find(u => u.name === name && u.password === password)
@@ -179,13 +221,83 @@ export function AppProvider({ children }: { children: ReactNode }) {
     })
   }
 
+  const completeTask = (taskId: string) => {
+    const task = tasks.find(t => t.id === taskId)
+    if (!task || task.completed) return
+
+    // Mark task as completed
+    setTasks(prev => prev.map(t => 
+      t.id === taskId ? { ...t, completed: true } : t
+    ))
+
+    // If it's a move task involving products, update stock and create sales transaction
+    if (task.type === "move" && task.product && task.quantity && task.to?.includes("outside")) {
+      // Update product stock
+      const product = products.find(p => p.name === task.product)
+      if (product) {
+        const newStock = Math.max(0, product.stock - task.quantity)
+        setProducts(prev => prev.map(p => 
+          p.id === product.id ? { ...p, stock: newStock } : p
+        ))
+
+        // Create sales transaction
+        const transactionTotal = task.quantity * (product.price || 0)
+        const newTransaction: Transaction = {
+          id: Date.now(),
+          worker: task.employee || "Unknown",
+          day: task.day || "Unknown",
+          date: new Date().toISOString().split('T')[0],
+          items: [{
+            product: task.product,
+            quantity: task.quantity,
+            price: product.price || 0
+          }],
+          total: transactionTotal
+        }
+        setTransactions(prev => [...prev, newTransaction])
+      }
+    }
+  }
+
+  const addProduct = (product: Omit<Product, 'id'>) => {
+    const newProduct: Product = {
+      ...product,
+      id: Date.now(),
+    }
+    setProducts(prev => [...prev, newProduct])
+  }
+
+  const deleteProduct = (productId: number) => {
+    setProducts(prev => prev.filter(p => p.id !== productId))
+  }
+
+  const updateProductStock = (productId: number, newStock: number) => {
+    setProducts(prev => prev.map(p => 
+      p.id === productId ? { ...p, stock: newStock } : p
+    ))
+  }
+
+  const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
+    const newTransaction: Transaction = {
+      ...transaction,
+      id: Date.now(),
+    }
+    setTransactions(prev => [...prev, newTransaction])
+  }
+
+  const getTransactionsByDay = (day: string): Transaction[] => {
+    return transactions.filter(t => t.day === day)
+  }
+
   return (
     <AppContext.Provider value={{
-      users, currentUser, roleRequests, productRequests, tasks,
+      users, currentUser, roleRequests, productRequests, tasks, products, transactions,
       login, logout, register,
       sendRoleRequest, respondToRoleRequest,
       sendProductRequest, respondToProductRequest,
-      addTask, deleteTask, getTasksForEmployee,
+      addTask, deleteTask, getTasksForEmployee, completeTask,
+      addProduct, deleteProduct, updateProductStock,
+      addTransaction, getTransactionsByDay,
     }}>
       {children}
     </AppContext.Provider>

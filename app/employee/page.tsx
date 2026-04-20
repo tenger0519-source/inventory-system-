@@ -11,7 +11,7 @@ const todayIndex = 1
 const todayName = daysMap[todayIndex]
 
 export default function EmployeeHome() {
-  const { getTasksForEmployee } = useApp()
+  const { getTasksForEmployee, completeTask } = useApp()
   const tasksList = getTasksForEmployee("", todayName)
 
   return (
@@ -35,10 +35,26 @@ export default function EmployeeHome() {
           </CardHeader>
           <CardContent className="space-y-3">
             {tasksList.length > 0 ? tasksList.map((task: any, i: number) => (
-              <div key={i} className="rounded-lg border p-4 space-y-2">
-                <div className="flex justify-between">
-                  <p className="font-medium">{task.action}</p>
-                  <span className="text-sm text-muted-foreground">{task.time}</span>
+              <div key={i} className={`rounded-lg border p-4 space-y-2 ${task.completed ? 'bg-muted/50 opacity-60' : ''}`}>
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <p className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
+                      {task.action}
+                    </p>
+                    <span className="text-sm text-muted-foreground">{task.time}</span>
+                  </div>
+                  {!task.completed && (
+                    <Button 
+                      size="sm" 
+                      onClick={() => completeTask(task.id)}
+                      className="ml-3"
+                    >
+                      Complete
+                    </Button>
+                  )}
+                  {task.completed && (
+                    <span className="ml-3 text-sm text-green-600 font-medium">Completed</span>
+                  )}
                 </div>
                 {task.type === "move" && (
                   <>
