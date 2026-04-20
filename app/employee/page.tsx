@@ -90,7 +90,7 @@ function EmployeeWeeklyPlan() {
 }
 
 export default function EmployeeHome() {
-  const { getTasksForEmployee, completeTask, globalTime, currentUser, tasks } = useApp()
+  const { getTasksForEmployee, completeTask, globalTime, currentUser, tasks } = useSupabaseApp()
   const tasksList = tasks.filter(task => 
     task.day === globalTime.currentDay && 
     task.employee === currentUser?.name && 
