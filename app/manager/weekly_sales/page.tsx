@@ -80,7 +80,13 @@ function WeeklySalesContent() {
                 <BarChart data={weeklyData}>
                   <XAxis dataKey="day" tick={{ fontSize: 12 }} />
                   <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip formatter={(v: number) => `₮ ${v.toLocaleString()}`} />
+                  <Tooltip
+  formatter={(value) =>
+    typeof value === "number"
+      ? `₮ ${value.toLocaleString()}`
+      : value
+  }
+/>
                   <Bar dataKey="revenue" fill="#3b82f6" radius={[4,4,0,0]} cursor="pointer"
                     onClick={data => router.push(`/manager/daily_sales?day=${data.payload.day}`)}>
                     <LabelList dataKey="count" position="top" style={{ fontSize: 11 }} />
