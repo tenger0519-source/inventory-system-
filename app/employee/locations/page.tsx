@@ -17,7 +17,7 @@ const products = [
   { id: 8, name: "Оролтын хоолой",        sector: "D2", quantity: 100, unit: "нэг" },
 ];
 
-export default function PositionsPage() {
+export default function LocationsPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [sectorFilter, setSectorFilter] = useState('');
