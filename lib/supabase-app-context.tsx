@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react"
-import { supabase } from "./supabase"
+import { getSupabaseClient } from "./supabase"
 
 // Reuse the same types from the original context
 export type Role = "manager" | "employee" | "supplier"
@@ -167,19 +167,19 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
       setLoading(true)
       
       // Fetch users
-      const { data: usersData } = await supabase.from('users').select('*')
+      const { data: usersData } = await getSupabaseClient().from('users').select('*')
       if (usersData) setUsers(usersData.map(u => ({ ...u, roles: u.roles || [] })))
       
       // Fetch role requests
-      const { data: roleRequestsData } = await supabase.from('role_requests').select('*')
+      const { data: roleRequestsData } = await getSupabaseClient().from('role_requests').select('*')
       if (roleRequestsData) setRoleRequests(roleRequestsData)
       
       // Fetch product requests
-      const { data: productRequestsData } = await supabase.from('product_requests').select('*')
+      const { data: productRequestsData } = await getSupabaseClient().from('product_requests').select('*')
       if (productRequestsData) setProductRequests(productRequestsData)
       
       // Fetch move requests
-      const { data: moveRequestsData } = await supabase.from('move_requests').select('*')
+      const { data: moveRequestsData } = await getSupabaseClient().from('move_requests').select('*')
       if (moveRequestsData) setMoveRequests(moveRequestsData.map(mr => ({
         ...mr,
         from: mr.from_location,
@@ -190,7 +190,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
       })))
       
       // Fetch tasks
-      const { data: tasksData } = await supabase.from('tasks').select('*')
+      const { data: tasksData } = await getSupabaseClient().from('tasks').select('*')
       if (tasksData) setTasks(tasksData.map(t => ({
         ...t,
         from: t.from_location,
@@ -198,11 +198,11 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
       })))
       
       // Fetch products
-      const { data: productsData } = await supabase.from('products').select('*')
+      const { data: productsData } = await getSupabaseClient().from('products').select('*')
       if (productsData) setProducts(productsData)
       
       // Fetch transactions with items
-      const { data: transactionsData } = await supabase
+      const { data: transactionsData } = await getSupabaseClient()
         .from('transactions')
         .select(`
           *,
@@ -246,7 +246,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
     if (exists) return false
     
     try {
-      const { data } = await supabase
+      const { data } = await getSupabaseClient()
         .from('users')
         .insert([{ name, password, roles: [] }])
         .select()
@@ -267,7 +267,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
     if (!currentUser) return
     
     try {
-      await supabase.from('role_requests').insert([{
+      await getSupabaseClient().from('role_requests').insert([{
         from_user_id: currentUser.id,
         to_user_id: toUserId,
         requested_role: role,
@@ -281,7 +281,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
 
   const respondToRoleRequest = async (requestId: number, accept: boolean) => {
     try {
-      const { data: request } = await supabase
+      const { data: request } = await getSupabaseClient()
         .from('role_requests')
         .select('*')
         .eq('id', requestId)
@@ -289,21 +289,21 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
       
       if (accept && request) {
         // Update user roles
-        const { data: user } = await supabase
+        const { data: user } = await getSupabaseClient()
           .from('users')
           .select('*')
           .eq('id', request.to_user_id)
           .single()
         
         if (user && !user.roles.includes(request.requested_role)) {
-          await supabase
+          await getSupabaseClient()
             .from('users')
             .update({ roles: [...user.roles, request.requested_role] })
             .eq('id', request.to_user_id)
         }
       }
       
-      await supabase
+      await getSupabaseClient()
         .from('role_requests')
         .update({ status: accept ? 'accepted' : 'declined' })
         .eq('id', requestId)
@@ -323,7 +323,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
     if (!currentUser) return
     
     try {
-      await supabase.from('product_requests').insert([{
+      await getSupabaseClient().from('product_requests').insert([{
         from_user_id: currentUser.id,
         to_user_id: toUserId,
         type,
@@ -339,7 +339,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
 
   const respondToProductRequest = async (requestId: number, accept: boolean) => {
     try {
-      await supabase
+      await getSupabaseClient()
         .from('product_requests')
         .update({ status: accept ? 'accepted' : 'declined' })
         .eq('id', requestId)
@@ -351,7 +351,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
 
   const addTask = async (task: Omit<Task, 'id'>) => {
     try {
-      await supabase.from('tasks').insert([{
+      await getSupabaseClient().from('tasks').insert([{
         ...task,
         from_location: task.from,
         to_location: task.to
@@ -364,7 +364,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
 
   const deleteTask = async (taskId: string) => {
     try {
-      await supabase.from('tasks').delete().eq('id', taskId)
+      await getSupabaseClient().from('tasks').delete().eq('id', taskId)
       await fetchAllData()
     } catch (error) {
       console.error('Error deleting task:', error)
@@ -385,7 +385,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
 
     try {
       // Mark task as completed
-      await supabase.from('tasks').update({ completed: true }).eq('id', taskId)
+      await getSupabaseClient().from('tasks').update({ completed: true }).eq('id', taskId)
 
       // If it's a move task involving products, update stock and create sales transaction
       if (task.type === "move" && task.product && task.quantity && task.to?.includes("outside")) {
@@ -393,14 +393,14 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
         const product = products.find(p => p.name === task.product)
         if (product) {
           const newStock = Math.max(0, product.stock - task.quantity)
-          await supabase
+          await getSupabaseClient()
             .from('products')
             .update({ stock: newStock })
             .eq('id', product.id)
 
           // Create sales transaction
           const transactionTotal = task.quantity * (product.price || 0)
-          const { data: newTransaction } = await supabase
+          const { data: newTransaction } = await getSupabaseClient()
             .from('transactions')
             .insert([{
               worker: task.employee || "Unknown",
@@ -413,7 +413,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
             .single()
 
           if (newTransaction) {
-            await supabase.from('transaction_items').insert([{
+            await getSupabaseClient().from('transaction_items').insert([{
               transaction_id: newTransaction.id,
               product: task.product,
               quantity: task.quantity,
@@ -431,7 +431,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
 
   const addProduct = async (product: Omit<Product, 'id'>) => {
     try {
-      await supabase.from('products').insert([product])
+      await getSupabaseClient().from('products').insert([product])
       await fetchAllData()
     } catch (error) {
       console.error('Error adding product:', error)
@@ -440,7 +440,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
 
   const deleteProduct = async (productId: number) => {
     try {
-      await supabase.from('products').delete().eq('id', productId)
+      await getSupabaseClient().from('products').delete().eq('id', productId)
       await fetchAllData()
     } catch (error) {
       console.error('Error deleting product:', error)
@@ -449,7 +449,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
 
   const updateProductStock = async (productId: number, newStock: number) => {
     try {
-      await supabase.from('products').update({ stock: newStock }).eq('id', productId)
+      await getSupabaseClient().from('products').update({ stock: newStock }).eq('id', productId)
       await fetchAllData()
     } catch (error) {
       console.error('Error updating product stock:', error)
@@ -458,7 +458,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
 
   const addTransaction = async (transaction: Omit<Transaction, 'id'>) => {
     try {
-      const { data: newTransaction } = await supabase
+      const { data: newTransaction } = await getSupabaseClient()
         .from('transactions')
         .insert([{
           worker: transaction.worker,
@@ -471,7 +471,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
         .single()
 
       if (newTransaction) {
-        await supabase.from('transaction_items').insert(
+        await getSupabaseClient().from('transaction_items').insert(
           transaction.items.map(item => ({
             transaction_id: newTransaction.id,
             product: item.product,
@@ -495,7 +495,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
     if (!currentUser) return
     
     try {
-      await supabase.from('move_requests').insert([{
+      await getSupabaseClient().from('move_requests').insert([{
         ...request,
         requested_by: request.requestedBy,
         from_location: request.from,
@@ -509,7 +509,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
 
   const confirmMoveRequest = async (requestId: string) => {
     try {
-      await supabase.from('move_requests').update({ status: "confirmed" }).eq('id', requestId)
+      await getSupabaseClient().from('move_requests').update({ status: "confirmed" }).eq('id', requestId)
       await fetchAllData()
     } catch (error) {
       console.error('Error confirming move request:', error)
@@ -518,7 +518,7 @@ export function SupabaseAppProvider({ children }: { children: ReactNode }) {
 
   const assignMoveRequest = async (requestId: string, employeeName: string) => {
     try {
-      await supabase.from('move_requests').update({ assigned_to: employeeName }).eq('id', requestId)
+      await getSupabaseClient().from('move_requests').update({ assigned_to: employeeName }).eq('id', requestId)
       await fetchAllData()
     } catch (error) {
       console.error('Error assigning move request:', error)
