@@ -29,11 +29,28 @@ export type ProductRequest = {
   status: "pending" | "accepted" | "declined"
 }
 
+export type Task = {
+  id: string
+  type: "move" | "message" | "general"
+  time: string
+  action: string
+  employee?: string
+  product?: string
+  quantity?: number
+  from?: string
+  to?: string
+  shelf?: string
+  message?: string
+  day?: string
+  date?: string
+}
+
 type AppContextType = {
   users: User[]
   currentUser: User | null
   roleRequests: RoleRequest[]
   productRequests: ProductRequest[]
+  tasks: Task[]
   login: (name: string, password: string) => boolean
   logout: () => void
   register: (name: string, password: string) => boolean
@@ -41,6 +58,9 @@ type AppContextType = {
   respondToRoleRequest: (requestId: number, accept: boolean) => void
   sendProductRequest: (toUserId: number, type: "give" | "take", product: string, quantity: number) => void
   respondToProductRequest: (requestId: number, accept: boolean) => void
+  addTask: (task: Omit<Task, 'id'>) => void
+  deleteTask: (taskId: string) => void
+  getTasksForEmployee: (employeeName: string, day?: string) => Task[]
 }
 
 const AppContext = createContext<AppContextType | null>(null)
@@ -59,6 +79,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [roleRequests, setRoleRequests] = useState<RoleRequest[]>([])
   const [productRequests, setProductRequests] = useState<ProductRequest[]>([])
+  const [tasks, setTasks] = useState<Task[]>([])
 
   const login = (name: string, password: string): boolean => {
     const user = users.find(u => u.name === name && u.password === password)
@@ -138,12 +159,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
     ))
   }
 
+  const addTask = (task: Omit<Task, 'id'>) => {
+    const newTask: Task = {
+      ...task,
+      id: Date.now().toString(),
+    }
+    setTasks(prev => [...prev, newTask])
+  }
+
+  const deleteTask = (taskId: string) => {
+    setTasks(prev => prev.filter(t => t.id !== taskId))
+  }
+
+  const getTasksForEmployee = (employeeName: string, day?: string): Task[] => {
+    return tasks.filter(task => {
+      const matchesEmployee = !task.employee || task.employee === employeeName
+      const matchesDay = !day || !task.day || task.day === day
+      return matchesEmployee && matchesDay
+    })
+  }
+
   return (
     <AppContext.Provider value={{
-      users, currentUser, roleRequests, productRequests,
+      users, currentUser, roleRequests, productRequests, tasks,
       login, logout, register,
       sendRoleRequest, respondToRoleRequest,
       sendProductRequest, respondToProductRequest,
+      addTask, deleteTask, getTasksForEmployee,
     }}>
       {children}
     </AppContext.Provider>

@@ -4,15 +4,16 @@ import Link from "next/link"
 import WeeklyGraph from "@/components/weekly-graph"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { weeklyData } from "@/lib/weekly-data"
+import { useApp } from "@/lib/app-context"
 
 const daysMap = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
 const todayIndex = 1
 const todayName = daysMap[todayIndex]
-const todayData = weeklyData.find((d) => d.day === todayName)
-const tasks = todayData?.tasks ?? []
 
 export default function EmployeeHome() {
+  const { getTasksForEmployee } = useApp()
+  const tasksList = getTasksForEmployee("", todayName)
+
   return (
     <main className="min-h-screen bg-background p-6">
       <div className="mx-auto max-w-4xl space-y-6">
@@ -33,7 +34,7 @@ export default function EmployeeHome() {
             <CardDescription>Ямар бараа, хэзээ, хаашаа</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {tasks.length > 0 ? tasks.map((task: any, i: number) => (
+            {tasksList.length > 0 ? tasksList.map((task: any, i: number) => (
               <div key={i} className="rounded-lg border p-4 space-y-2">
                 <div className="flex justify-between">
                   <p className="font-medium">{task.action}</p>

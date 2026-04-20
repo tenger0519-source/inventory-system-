@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useApp } from "@/lib/app-context"
 
 const employees = ["Бат", "Сараа", "Тэмүүжин", "Нараа"]
 const hours = Array.from({ length: 10 }, (_, i) => `${8 + i}:00`)
@@ -16,30 +18,73 @@ const shifts: Record<string, { start: number; end: number }> = {
   Нараа:    { start: 8,  end: 14 },
 }
 
-type Task = { id: string; employee: string; hour: string; title: string; description: string }
+type LocalTask = { id: string; employee: string; hour: string; title: string; description: string }
 
 export default function DailyPlanPage() {
   const router = useRouter()
-  const [tasks, setTasks] = useState<Task[]>([])
+  const { tasks, addTask, deleteTask } = useApp()
   const [selectedCell, setSelectedCell] = useState<{ employee: string; hour: string } | null>(null)
   const [title, setTitle] = useState("")
   const [desc, setDesc] = useState("")
+  const [taskType, setTaskType] = useState<"move" | "message" | "general">("general")
+  const [product, setProduct] = useState("")
+  const [quantity, setQuantity] = useState("")
+  const [from, setFrom] = useState("")
+  const [to, setTo] = useState("")
+  const [shelf, setShelf] = useState("")
 
   const handleAddTask = () => {
     if (!selectedCell || !title) return
-    setTasks([...tasks, {
-      id: Math.random().toString(36).substring(2, 9),
-      employee: selectedCell.employee,
-      hour: selectedCell.hour,
-      title,
-      description: desc,
-    }])
+    
+    const daysMap = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
+    const today = daysMap[new Date().getDay()]
+    
+    if (taskType === "move") {
+      addTask({
+        type: "move",
+        time: selectedCell.hour,
+        action: title,
+        employee: selectedCell.employee,
+        product: product || undefined,
+        quantity: quantity ? parseInt(quantity) : undefined,
+        from: from || undefined,
+        to: to || undefined,
+        shelf: shelf || undefined,
+        day: today,
+        message: desc,
+      })
+    } else if (taskType === "message") {
+      addTask({
+        type: "message",
+        time: selectedCell.hour,
+        action: title,
+        employee: selectedCell.employee,
+        message: desc,
+        day: today,
+      })
+    } else {
+      addTask({
+        type: "general",
+        time: selectedCell.hour,
+        action: title,
+        employee: selectedCell.employee,
+        message: desc,
+        day: today,
+      })
+    }
+    
     setSelectedCell(null)
     setTitle("")
     setDesc("")
+    setProduct("")
+    setQuantity("")
+    setFrom("")
+    setTo("")
+    setShelf("")
+    setTaskType("general")
   }
 
-  const handleDeleteTask = (id: string) => setTasks(tasks.filter(t => t.id !== id))
+  const handleDeleteTask = (id: string) => deleteTask(id)
 
   return (
     <main className="min-h-screen bg-background p-6">
@@ -75,7 +120,7 @@ export default function DailyPlanPage() {
                     const shift = shifts[emp]
                     const hourNum = 8 + i
                     const isWorking = shift && hourNum >= shift.start && hourNum < shift.end
-                    const task = tasks.find(t => t.employee === emp && t.hour === hour)
+                    const task = tasks.find(t => t.employee === emp && t.time === hour)
                     return (
                       <div
                         key={emp + hour}
@@ -84,7 +129,7 @@ export default function DailyPlanPage() {
                       >
                         {task && (
                           <div className="absolute inset-1 bg-white border rounded flex items-center justify-between px-2 py-1 text-xs shadow-sm">
-                            <span className="truncate">{task.title}</span>
+                            <span className="truncate">{task.action}</span>
                             <button
                               onClick={e => { e.stopPropagation(); handleDeleteTask(task.id) }}
                               className="ml-2 text-muted-foreground hover:text-destructive"
@@ -108,8 +153,32 @@ export default function DailyPlanPage() {
               <CardDescription>{selectedCell.employee} · {selectedCell.hour}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
+              <div>
+                <label className="text-sm font-medium">Даалгаврын төрөл:</label>
+                <Select value={taskType} onValueChange={(value: "move" | "message" | "general") => setTaskType(value)}>
+                  <SelectTrigger className="w-full mt-1">
+                    <SelectValue placeholder="Төрөл сонгоно уу" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="general">Ерөнхий</SelectItem>
+                    <SelectItem value="move">Бараа зөөх</SelectItem>
+                    <SelectItem value="message">Зурвас</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <Input placeholder="Гарчиг" value={title} onChange={e => setTitle(e.target.value)} />
               <Textarea placeholder="Тайлбар" value={desc} onChange={e => setDesc(e.target.value)} />
+              
+              {taskType === "move" && (
+                <div className="grid grid-cols-2 gap-3">
+                  <Input placeholder="Бараа" value={product} onChange={e => setProduct(e.target.value)} />
+                  <Input placeholder="Тоо хэмжээ" value={quantity} onChange={e => setQuantity(e.target.value)} />
+                  <Input placeholder="Хаанаас" value={from} onChange={e => setFrom(e.target.value)} />
+                  <Input placeholder="Хаашаа" value={to} onChange={e => setTo(e.target.value)} />
+                  <Input placeholder="Тавиур" value={shelf} onChange={e => setShelf(e.target.value)} />
+                </div>
+              )}
+              
               <div className="flex gap-2">
                 <Button onClick={handleAddTask}>Хадгалах</Button>
                 <Button variant="outline" onClick={() => setSelectedCell(null)}>Болих</Button>
