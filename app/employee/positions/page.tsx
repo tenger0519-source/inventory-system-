@@ -102,7 +102,7 @@ export default function PositionsPage() {
             ))}
             {filteredProducts.length === 0 && (
               <TableRow>
-                <TableCell colSpan="5" className="text-center py-4 text-muted-foreground">
+                <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
                   Хайлтаар тулгарч мэдээлэл олдсонгүй.
                 </TableCell>
               </TableRow>
