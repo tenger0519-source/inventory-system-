@@ -55,6 +55,8 @@ export type Product = {
   date: string
   stock: number
   minStock: number
+  sector?: string
+  unit?: string
 }
 
 export type SalesItem = {

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import NotificationBell from "@/components/notification-bell"
 import { useApp } from "@/lib/app-context"
 
-const DAYS = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
+const DAYS = ["H Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
 export default function ManagerHome() {
   const { tasks, transactions, products, users, globalTime } = useApp()

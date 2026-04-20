@@ -9,12 +9,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input"
 import { useApp } from "@/lib/app-context"
 
-const DAYS = ["Дав", "Мяг", "Лха", "Пүр", "Баа", "Бям", "Ням"]
-const EMPLOYEES = ["Батболд", "Наранбаатар", "Ганболд", "Отгонбаатар", "Алтангэрэл"]
+const DAYS = ["H Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
 export default function WeeklyPlanPage() {
   const router = useRouter()
-  const { tasks, addTask, deleteTask } = useApp()
+  const { tasks, addTask, deleteTask, users } = useApp()
+  
+  // Get dynamic employee list from users with employee role
+  const EMPLOYEES = users.filter(u => u.roles.includes("employee")).map(u => u.name)
   const [weekIndex, setWeekIndex] = useState(0)
   const [selectedEmployee, setSelectedEmployee] = useState<string>("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -88,7 +90,7 @@ export default function WeeklyPlanPage() {
   }
 
   const getTaskAt = (day: number, hour: number) =>
-    tasks.find(t => t.day === DAYS[day] && parseInt(t.time) === hour)
+    tasks.find(t => t.day === DAYS[day] && t.time === `${hour}:00`)
 
   return (
     <main className="min-h-screen bg-background p-6">
