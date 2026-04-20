@@ -10,24 +10,35 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useApp } from "@/lib/app-context"
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter()
-  const { login } = useApp()
+  const { register } = useApp()
   const [name, setName] = useState("")
   const [password, setPassword] = useState("")
+  const [confirm, setConfirm] = useState("")
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+
+    if (password !== confirm) {
+      setError("Нууц үг таарахгүй байна.")
+      return
+    }
+    if (password.length < 6) {
+      setError("Нууц үг хамгийн багадаа 6 тэмдэгт байх ёстой.")
+      return
+    }
+
     setIsLoading(true)
     await new Promise(r => setTimeout(r, 400))
-    const success = login(name, password)
+    const success = register(name, password)
     if (success) {
       router.push("/dashboard")
     } else {
-      setError("Нэр эсвэл нууц үг буруу байна.")
+      setError("Энэ нэр аль хэдийн бүртгэлтэй байна.")
     }
     setIsLoading(false)
   }
@@ -40,12 +51,12 @@ export default function LoginPage() {
             <Package className="h-8 w-8" />
           </div>
           <div>
-            <CardTitle className="text-2xl font-semibold">Агуулахын Удирдлагын Систем</CardTitle>
-            <CardDescription className="mt-1">Хянах самбартаа нэвтрэх</CardDescription>
+            <CardTitle className="text-2xl font-semibold">Шинэ бүртгэл үүсгэх</CardTitle>
+            <CardDescription className="mt-1">Нэр болон нууц үгээ оруулна уу</CardDescription>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleRegister} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Хэрэглэгчийн нэр</Label>
               <Input
@@ -67,9 +78,20 @@ export default function LoginPage() {
                 required
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm">Нууц үг давтах</Label>
+              <Input
+                id="confirm"
+                type="password"
+                placeholder="Нууц үгээ дахин оруулна уу"
+                value={confirm}
+                onChange={e => setConfirm(e.target.value)}
+                required
+              />
+            </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Нэвтэрч байна..." : "Нэвтрэх"}
+              {isLoading ? "Үүсгэж байна..." : "Бүртгэл үүсгэх"}
             </Button>
           </form>
 
@@ -82,16 +104,13 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <Link href="/register">
-            <Button variant="outline" className="w-full">Шинэ бүртгэл үүсгэх</Button>
+          <Link href="/">
+            <Button variant="outline" className="w-full">Нэвтрэх хуудас руу буцах</Button>
           </Link>
 
-          <div className="rounded-lg bg-muted p-3 space-y-1">
-            <p className="text-xs font-medium text-muted-foreground">Туршилтын акаунтууд (нууц үг: password123)</p>
-            {["Бат — ажилтан", "Сараа — менежер", "Тэмүүжин — ажилтан", "ABC Co — нийлүүлэгч"].map(n => (
-              <p key={n} className="text-xs text-muted-foreground">· {n}</p>
-            ))}
-          </div>
+          <p className="text-xs text-center text-muted-foreground">
+            Бүртгэл үүсгэсний дараа менежер таны эрхийг тогтооно.
+          </p>
         </CardContent>
       </Card>
     </main>
