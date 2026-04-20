@@ -80,7 +80,7 @@ export default function EmployeeHome() {
             <CardDescription>Ажлын цаг болон даалгаврын мэдээлэл</CardDescription>
           </CardHeader>
           <CardContent>
-            <WeeklyGraph />
+            <WeeklyGraph employee="Батболд" />
           </CardContent>
         </Card>
 

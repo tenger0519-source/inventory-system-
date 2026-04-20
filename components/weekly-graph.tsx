@@ -25,30 +25,21 @@ function CustomTooltip({ active, payload }: any) {
         <p>⏰ {d.hours} цаг</p>
         <p>🕒 {d.time}</p>
 
-        {/* TASKS */}
+        {/* TASKS - SHOW ONLY TITLES */}
         {Array.isArray(d.tasks) && d.tasks.length > 0 && (
           <div className="mt-2">
             <p className="font-medium">Даалгавар:</p>
-
             <ul className="list-disc ml-4">
               {d.tasks.map((task: any, i: number) => (
                 <li key={i}>
-                  {task.type === "move" ? (
-                    <>
-                      📦 {task.product} ({task.quantity}ш) <br />
-                      📍 {task.from} → {task.to} <br />
-                      🗄 {task.shelf}
-                    </>
-                  ) : (
-                    <>💬 {task.message}</>
-                  )}
+                  {task.title || (task.type === "move" ? task.product : task.message)}
                 </li>
               ))}
             </ul>
           </div>
         )}
 
-        {/* REMINDERS */}
+        {/* REMINDERS - SHOW ONLY TITLES */}
         {Array.isArray(d.reminders) && d.reminders.length > 0 && (
           <div className="mt-2">
             <p className="font-medium">Сануулга:</p>
@@ -99,11 +90,25 @@ const CustomXAxisTick = ({ x, y, payload }: any) => {
   )
 }
 
-export default function WeeklyGraph() {
+interface WeeklyGraphProps {
+  employee?: string
+}
+
+export default function WeeklyGraph({ employee }: WeeklyGraphProps) {
+  // Filter data by employee if provided
+  const filteredData = employee 
+    ? data.map(d => ({
+        ...d,
+        tasks: d.tasks.filter((task: any) => 
+          task.employee === employee || !task.employee // Show tasks without employee too
+        )
+      }))
+    : data
+
   return (
     <div className="w-full h-[300px]">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data}>
+        <BarChart data={filteredData}>
           <CartesianGrid strokeDasharray="3 3" />
 
           <XAxis
