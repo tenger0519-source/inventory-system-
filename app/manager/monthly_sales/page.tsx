@@ -1,34 +1,20 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-} from "recharts"
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis } from "recharts"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 
-// PIE DATA
 const pieData = [
-  { name: "Ундаа", value: 4200 },
-  { name: "Хоол", value: 3100 },
-  { name: "Амттан", value: 1800 },
-  { name: "Бусад", value: 900 },
+  { name: "Ундаа",   value: 4200 },
+  { name: "Хоол",    value: 3100 },
+  { name: "Амттан",  value: 1800 },
+  { name: "Бусад",   value: 900  },
 ]
+const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"]
 
-const COLORS = ["#60a5fa", "#34d399", "#fbbf24", "#f87171"]
-
-// WEEKLY DATA (IMPORTANT: each week is unique)
 const weeklyBreakdown = [
-  { week: "1-р долоо хоног", products: 900 },
+  { week: "1-р долоо хоног", products: 900  },
   { week: "2-р долоо хоног", products: 1100 },
   { week: "3-р долоо хоног", products: 1400 },
   { week: "4-р долоо хоног", products: 1000 },
@@ -38,88 +24,77 @@ export default function MonthlySalesPage() {
   const router = useRouter()
 
   return (
-    <main className="p-4 md:p-6 space-y-6">
+    <main className="min-h-screen bg-background p-6">
+      <div className="mx-auto max-w-4xl space-y-6">
 
-      {/* HEADER */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-xl md:text-2xl font-semibold">
-          Сарын борлуулалт
-        </h1>
-
-        <Button variant="outline" onClick={() => window.history.back()}>
-          ← Буцах
-        </Button>
-      </div>
-
-      {/* TOP SECTION */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        {/* PIE CHART */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Бүтээгдэхүүний төрөл</CardTitle>
-          </CardHeader>
-
-          <CardContent className="h-[350px]">
-        <div className="w-full h-[300px]">   
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={pieData} dataKey="value" nameKey="name" outerRadius={120} label>
-                  {pieData.map((_, index) => (
-                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+        {/* HEADER */}
+        <div className="flex items-center justify-between">
+          <Button variant="outline" onClick={() => router.back()}>← Буцах</Button>
+          <div className="text-right">
+            <h1 className="text-2xl font-semibold">Сарын борлуулалт</h1>
+            <p className="text-sm text-muted-foreground">Бүтээгдэхүүний төрөл ба долоо хоногийн задаргаа</p>
+          </div>
         </div>
-          </CardContent>
-        </Card>
 
-        {/* SUMMARY */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Сарын хураангуй</CardTitle>
-          </CardHeader>
+        {/* SUMMARY CARDS */}
+        <div className="grid grid-cols-3 gap-4">
+          {[
+            { label: "Нийт бүтээгдэхүүн", value: "9,000" },
+            { label: "Орлого",             value: "₮ 5,000,000" },
+            { label: "Өдрийн дундаж",      value: "300" },
+          ].map(s => (
+            <div key={s.label} className="rounded-lg border p-4 space-y-1">
+              <p className="text-sm text-muted-foreground">{s.label}</p>
+              <p className="text-xl font-semibold">{s.value}</p>
+            </div>
+          ))}
+        </div>
 
-          <CardContent className="space-y-3">
-            <p>📦 Нийт бүтээгдэхүүн: <b>9,000</b></p>
-            <p>💰 Орлого: <b>₮ 5,000,000</b></p>
-            <p>📊 Дундаж өдөр: <b>300 бүтээгдэхүүн</b></p>
-          </CardContent>
-        </Card>
+        {/* PIE + WEEKLY */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Бүтээгдэхүүний төрөл</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="w-full h-[280px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={pieData} dataKey="value" nameKey="name" outerRadius={100} label>
+                      {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>7 хоногийн задаргаа</CardTitle>
+              <CardDescription>Баганан дээр дарж дэлгэрэнгүйг харна</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="w-full h-[280px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={weeklyBreakdown}>
+                    <XAxis dataKey="week" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip />
+                    <Bar dataKey="products" fill="#3b82f6" radius={[4,4,0,0]} cursor="pointer"
+                      onClick={data => {
+                        const index = weeklyBreakdown.indexOf(data.payload)
+                        router.push(`/manager/weekly_sales?week=${index}`)
+                      }} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
       </div>
-
-      {/* WEEKLY BAR CHART */}
-      <Card>
-        <CardHeader>
-          <CardTitle>7 хоногийн задаргаа</CardTitle>
-        </CardHeader>
-
-        <CardContent className="h-[60vh] min-h-[300px]">
-      <div className="w-full h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={weeklyBreakdown}>
-              <XAxis dataKey="week" />
-              <YAxis />
-              <Tooltip />
-
-              {/* ✅ CLICK FIXED HERE */}
-              <Bar
-                dataKey="products"
-                cursor="pointer"
-                onClick={(data) => {
-                  const index = weeklyBreakdown.indexOf(data.payload)
-                  router.push(`/manager/weekly_sales?week=${index}`)
-                }}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-      </div>
-        </CardContent>
-      </Card>
-
     </main>
   )
 }

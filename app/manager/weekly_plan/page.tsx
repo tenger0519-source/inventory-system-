@@ -1,133 +1,68 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 
-type Task = {
-  id: string
-  title: string
-  day: number
-  startHour: number
-  duration: number
-}
-
-const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+type Task = { id: string; title: string; day: number; startHour: number; duration: number }
+const DAYS = ["Дав", "Мяг", "Лха", "Пүр", "Баа", "Бям", "Ням"]
 
 export default function WeeklyPlanPage() {
+  const router = useRouter()
   const [weekIndex, setWeekIndex] = useState(0)
   const [tasks, setTasks] = useState<Task[]>([])
 
-  // =========================
-  // ADD TASK
-  // =========================
   const handleAddTask = (day: number, hour: number) => {
-    const title = prompt("Task нэр оруулна уу:")
+    const title = prompt("Даалгаврын нэр:")
     if (!title) return
-
-    const durationInput = prompt("Duration (hours): 1-4")
-    const duration = Math.min(Math.max(Number(durationInput || 1), 1), 4)
-
-    const newTask: Task = {
-      id: Date.now().toString(),
-      title,
-      day,
-      startHour: hour,
-      duration,
-    }
-
-    setTasks((prev) => [...prev, newTask])
+    const dur = Math.min(Math.max(Number(prompt("Үргэлжлэх хугацаа (цаг): 1-4") || 1), 1), 4)
+    setTasks(prev => [...prev, { id: Date.now().toString(), title, day, startHour: hour, duration: dur }])
   }
 
-  // =========================
-  // WEEK NAVIGATION
-  // =========================
-  const nextWeek = () => setWeekIndex((w) => w + 1)
-  const prevWeek = () => setWeekIndex((w) => Math.max(0, w - 1))
-
-  // =========================
-  // GET TASK
-  // =========================
-  const getTaskAt = (day: number, hour: number) => {
-    return tasks.find(
-      (t) =>
-        t.day === day &&
-        hour >= t.startHour &&
-        hour < t.startHour + t.duration
-    )
-  }
+  const getTaskAt = (day: number, hour: number) =>
+    tasks.find(t => t.day === day && hour >= t.startHour && hour < t.startHour + t.duration)
 
   return (
-    <main className="min-h-screen bg-background p-4 sm:p-6">
-      <div className="mx-auto max-w-6xl space-y-6">
+    <main className="min-h-screen bg-background p-6">
+      <div className="mx-auto max-w-5xl space-y-6">
 
-        {/* ========================= */}
         {/* HEADER */}
-        {/* ========================= */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-
-          <Link href="/manager">
-            <Button variant="outline" className="w-full sm:w-auto">
-              ⬅ Буцах
-            </Button>
-          </Link>
-
-          <div className="text-left sm:text-right">
-            <h1 className="text-xl sm:text-2xl font-semibold">
-              Долоо хоногийн төлөвлөгөө
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Week #{weekIndex + 1}
-            </p>
+        <div className="flex items-center justify-between">
+          <Button variant="outline" onClick={() => router.push('/manager')}>← Буцах</Button>
+          <div className="text-right">
+            <h1 className="text-2xl font-semibold">7 хоногийн төлөвлөгөө</h1>
+            <p className="text-sm text-muted-foreground">{weekIndex + 1}-р долоо хоног</p>
           </div>
-
         </div>
 
-        {/* ========================= */}
-        {/* GRID SCHEDULE */}
-        {/* ========================= */}
-        <div className="overflow-x-auto">
-          <div className="min-w-[900px]">
-
-            {/* DAYS HEADER */}
-            <div className="grid grid-cols-8 text-center text-sm font-medium">
-              <div className="p-2 text-muted-foreground">Time</div>
-              {DAYS.map((d) => (
-                <div key={d} className="p-2 border-l">
-                  {d}
-                </div>
-              ))}
-            </div>
-
-            {/* GRID */}
-            <div className="border-t">
-
+        {/* GRID */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Хуваарь</CardTitle>
+            <CardDescription>Нүд дээр дарж даалгавар нэмнэ</CardDescription>
+          </CardHeader>
+          <CardContent className="overflow-auto">
+            <div className="min-w-[700px]">
+              <div className="grid grid-cols-8 border-b text-sm font-medium">
+                <div className="p-2 text-muted-foreground">Цаг</div>
+                {DAYS.map(d => <div key={d} className="p-2 text-center border-l">{d}</div>)}
+              </div>
               {Array.from({ length: 24 }).map((_, hour) => (
                 <div key={hour} className="grid grid-cols-8 border-b">
-
-                  {/* TIME */}
-                  <div className="p-2 text-xs text-muted-foreground border-r">
-                    {hour}:00
-                  </div>
-
-                  {/* DAYS */}
+                  <div className="p-2 text-xs text-muted-foreground border-r">{hour}:00</div>
                   {DAYS.map((_, dayIndex) => {
                     const task = getTaskAt(dayIndex, hour)
-
                     return (
                       <div
                         key={dayIndex}
                         onClick={() => handleAddTask(dayIndex, hour)}
-                        className="h-12 border-l relative cursor-pointer hover:bg-muted transition"
+                        className="h-10 border-l relative cursor-pointer hover:bg-muted transition"
                       >
-                        {/* TASK */}
                         {task && task.startHour === hour && (
                           <div
-                            className="absolute left-0 right-0 top-0 bg-blue-500 text-white text-xs p-1 rounded-md overflow-hidden"
-                            style={{
-                              height: `${task.duration * 48}px`,
-                              zIndex: 10,
-                            }}
+                            className="absolute inset-0 left-0.5 right-0.5 bg-blue-500 text-white text-xs p-1 rounded overflow-hidden z-10"
+                            style={{ height: `${task.duration * 40}px` }}
                           >
                             {task.title}
                           </div>
@@ -135,36 +70,16 @@ export default function WeeklyPlanPage() {
                       </div>
                     )
                   })}
-
                 </div>
               ))}
-
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        {/* ========================= */}
-        {/* WEEK NAVIGATION */}
-        {/* ========================= */}
-        <div className="flex flex-col sm:flex-row justify-between gap-3">
-
-          <Button
-            onClick={prevWeek}
-            variant="outline"
-            className="w-full sm:w-auto"
-            disabled={weekIndex === 0}
-          >
-            ⬅ Previous Week
-          </Button>
-
-          <Button
-            onClick={nextWeek}
-            variant="outline"
-            className="w-full sm:w-auto"
-          >
-            Next Week ➡
-          </Button>
-
+        {/* WEEK NAV */}
+        <div className="flex justify-between">
+          <Button variant="outline" onClick={() => setWeekIndex(w => Math.max(0, w - 1))} disabled={weekIndex === 0}>← Өмнөх долоо хоног</Button>
+          <Button variant="outline" onClick={() => setWeekIndex(w => w + 1)}>Дараагийн долоо хоног →</Button>
         </div>
 
       </div>
