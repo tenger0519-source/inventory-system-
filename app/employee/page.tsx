@@ -13,17 +13,13 @@ import { Button } from "@/components/ui/button"
 
 import { weeklyData } from "@/lib/weekly-data"
 
-// ✅ Map JS day → Mongolian
 const daysMap = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
 
-// 🔧 Dev override (change this to test different days)
-const todayIndex = 1 // new Date().getDay()
+const todayIndex = 1
 const todayName = daysMap[todayIndex]
 
-// ✅ Find today's data
 const todayData = weeklyData.find((d) => d.day === todayName)
 
-// safer fallback
 const tasks = todayData?.tasks ?? []
 
 export default function EmployeeHome() {
@@ -59,7 +55,6 @@ export default function EmployeeHome() {
               tasks.map((task: any, i: number) => (
                 <div key={i} className="border p-4 rounded-lg space-y-2">
 
-                  {/* HEADER */}
                   <div className="flex justify-between">
                     <p className="font-semibold">{task.action}</p>
                     <span className="text-sm text-muted-foreground">
@@ -67,7 +62,6 @@ export default function EmployeeHome() {
                     </span>
                   </div>
 
-                  {/* MOVEMENT TASK */}
                   {task.type === "move" && (
                     <>
                       {task.quantity > 0 && (
@@ -75,18 +69,15 @@ export default function EmployeeHome() {
                           📦 {task.product} — {task.quantity}ш
                         </p>
                       )}
-
                       <p className="text-sm text-blue-600 font-medium">
                         📍 {task.from} → {task.to}
                       </p>
-
                       <p className="text-sm text-muted-foreground">
                         🗄 Тавиур: {task.shelf}
                       </p>
                     </>
                   )}
 
-                  {/* MESSAGE TASK */}
                   {task.type === "message" && (
                     <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
                       <p className="text-sm text-yellow-800">
@@ -118,6 +109,24 @@ export default function EmployeeHome() {
             <Link href="/employee/positions">
               <Button className="w-full">
                 Барааны позициид
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        {/* ===== LOCATIONS ===== */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Барааны байршил</CardTitle>
+            <CardDescription>
+              Бараа ямар байршилд хадгалагдаж байгааг харах
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            <Link href="/employee/locations">
+              <Button className="w-full">
+                Барааны байршил харах
               </Button>
             </Link>
           </CardContent>
