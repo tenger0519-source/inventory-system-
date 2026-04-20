@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import NotificationBell from "@/components/notification-bell"
 
 export default function ManagerHome() {
   return (
@@ -11,12 +12,13 @@ export default function ManagerHome() {
 
         {/* HEADER */}
         <div className="flex items-center justify-between">
-          <Link href="/"><Button variant="outline">← Гарах</Button></Link>
-          <div className="text-right">
-            <h1 className="text-2xl font-semibold">Менежерийн самбар</h1>
-            <p className="text-sm text-muted-foreground">Төлөвлөлт, борлуулалт, удирдлага</p>
-          </div>
-        </div>
+  <Link href="/dashboard"><Button variant="outline">← Буцах</Button></Link>
+  <div className="text-right">
+    <h1 className="text-2xl font-semibold">Менежерийн самбар</h1>
+    <p className="text-sm text-muted-foreground">Төлөвлөлт, борлуулалт, удирдлага</p>
+  </div>
+  <NotificationBell />
+</div>
 
         {/* PLANNING */}
         <Card>

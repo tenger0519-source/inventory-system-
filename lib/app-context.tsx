@@ -19,15 +19,28 @@ export type RoleRequest = {
   status: "pending" | "accepted" | "declined"
 }
 
+export type ProductRequest = {
+  id: number
+  fromUserId: number
+  toUserId: number
+  type: "give" | "take"
+  product: string
+  quantity: number
+  status: "pending" | "accepted" | "declined"
+}
+
 type AppContextType = {
   users: User[]
   currentUser: User | null
   roleRequests: RoleRequest[]
+  productRequests: ProductRequest[]
   login: (name: string, password: string) => boolean
   logout: () => void
   register: (name: string, password: string) => boolean
   sendRoleRequest: (toUserId: number, role: Role) => void
-  respondToRequest: (requestId: number, accept: boolean) => void
+  respondToRoleRequest: (requestId: number, accept: boolean) => void
+  sendProductRequest: (toUserId: number, type: "give" | "take", product: string, quantity: number) => void
+  respondToProductRequest: (requestId: number, accept: boolean) => void
 }
 
 const AppContext = createContext<AppContextType | null>(null)
@@ -45,6 +58,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useState<User[]>(initialUsers)
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [roleRequests, setRoleRequests] = useState<RoleRequest[]>([])
+  const [productRequests, setProductRequests] = useState<ProductRequest[]>([])
 
   const login = (name: string, password: string): boolean => {
     const user = users.find(u => u.name === name && u.password === password)
@@ -58,12 +72,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const register = (name: string, password: string): boolean => {
     const exists = users.some(u => u.name.toLowerCase() === name.toLowerCase())
     if (exists) return false
-    const newUser: User = {
-      id: Date.now(),
-      name,
-      password,
-      roles: [],
-    }
+    const newUser: User = { id: Date.now(), name, password, roles: [] }
     setUsers(prev => [...prev, newUser])
     setCurrentUser(newUser)
     return true
@@ -84,7 +93,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }])
   }
 
-  const respondToRequest = (requestId: number, accept: boolean) => {
+  const respondToRoleRequest = (requestId: number, accept: boolean) => {
     setRoleRequests(prev => prev.map(r => {
       if (r.id !== requestId) return r
       if (accept) {
@@ -103,11 +112,38 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }))
   }
 
+  const sendProductRequest = (
+    toUserId: number,
+    type: "give" | "take",
+    product: string,
+    quantity: number
+  ) => {
+    if (!currentUser) return
+    setProductRequests(prev => [...prev, {
+      id: Date.now(),
+      fromUserId: currentUser.id,
+      toUserId,
+      type,
+      product,
+      quantity,
+      status: "pending",
+    }])
+  }
+
+  const respondToProductRequest = (requestId: number, accept: boolean) => {
+    setProductRequests(prev => prev.map(r =>
+      r.id === requestId
+        ? { ...r, status: accept ? "accepted" : "declined" }
+        : r
+    ))
+  }
+
   return (
     <AppContext.Provider value={{
-      users, currentUser, roleRequests,
+      users, currentUser, roleRequests, productRequests,
       login, logout, register,
-      sendRoleRequest, respondToRequest,
+      sendRoleRequest, respondToRoleRequest,
+      sendProductRequest, respondToProductRequest,
     }}>
       {children}
     </AppContext.Provider>
