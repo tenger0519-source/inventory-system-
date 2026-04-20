@@ -105,24 +105,6 @@ export default function EmployeeHome() {
           </CardContent>
         </Card>
 
-        {/* ===== LOCATION TOOL ===== */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Бараа байршил хайх</CardTitle>
-            <CardDescription>
-              Барааны байршлыг харах хэрэгсэл
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent>
-            <Link href="/employee/locations">
-              <Button className="w-full">
-                Байршил харах
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-
         {/* ===== POSITIONS ===== */}
         <Card>
           <CardHeader>
