@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { useApp } from "@/lib/app-context"
-import type { Role, ProductRequest } from "@/lib/app-context"
+import { useSupabaseApp } from "@/lib/supabase-app-context"
+import type { Role, ProductRequest } from "@/lib/supabase-app-context"
 import NotificationBell from "@/components/notification-bell"
 
 const roleLabel: Record<Role, string> = {
@@ -25,7 +25,7 @@ const typeLabel = (type: "give" | "take") => type === "give" ? "Өгөх" : "А�
 
 export default function SuppliersPage() {
   const router = useRouter()
-  const { users, currentUser, roleRequests, productRequests, sendRoleRequest, sendProductRequest, respondToProductRequest } = useApp()
+  const { users, currentUser, roleRequests, productRequests, sendRoleRequest, sendProductRequest, respondToProductRequest } = useSupabaseApp()
 
   const [tab, setTab] = useState<"list" | "role_requests" | "product_requests">("list")
   const [search, setSearch] = useState("")

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { useApp } from "@/lib/app-context"
+import { useSupabaseApp } from "@/lib/supabase-app-context"
 
 const dayOrder = ["Даваа","Мягмар","Лхагва","Пүрэв","Баасан","Бямба","Ням"]
 
@@ -13,7 +13,7 @@ function WeeklySalesContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const weekIndex = searchParams.get("week")
-  const { transactions } = useApp()
+  const { transactions } = useSupabaseApp()
   const weeklyData = transactions
     .filter((transaction) => transaction.day)
     .reduce((acc: any[], transaction) => {

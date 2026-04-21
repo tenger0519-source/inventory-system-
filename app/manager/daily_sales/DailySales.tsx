@@ -4,12 +4,12 @@ import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useApp } from "@/lib/app-context";
+import { useSupabaseApp } from "@/lib/supabase-app-context";
 
 export default function DailySales() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { getTransactionsByDay, globalTime } = useApp();
+  const { getTransactionsByDay, globalTime } = useSupabaseApp();
   const selectedDay = searchParams.get("day");
   const currentDay = selectedDay || globalTime.currentDay;
   const transactions = getTransactionsByDay(currentDay);

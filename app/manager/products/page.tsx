@@ -2,16 +2,17 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import type { Role } from "@/lib/supabase-app-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { useApp } from "@/lib/app-context"
+import { useSupabaseApp } from "@/lib/supabase-app-context"
 
 type Product = { id: number; name: string; supplier: string; price: number; type: string; date: string; stock: number; minStock: number }
 
 export default function ProductsPage() {
   const router = useRouter()
-  const { products, addProduct, deleteProduct } = useApp()
+  const { products, addProduct, deleteProduct } = useSupabaseApp()
   const [search, setSearch] = useState("")
   const [form, setForm] = useState<Omit<Product, "id">>({ name: "", supplier: "", price: 0, type: "", date: "", stock: 0, minStock: 0 })
 

@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { useApp } from "@/lib/app-context"
-import type { Role } from "@/lib/app-context"
+import { useSupabaseApp } from "@/lib/supabase-app-context"
+import type { Role } from "@/lib/supabase-app-context"
 
 const roleLabel: Record<Role, string> = {
   employee: "Ажилтан",
@@ -16,7 +16,7 @@ const roleLabel: Record<Role, string> = {
 
 export default function EmployeesPage() {
   const router = useRouter()
-  const { users, currentUser, roleRequests, sendRoleRequest } = useApp()
+  const { users, currentUser, roleRequests, sendRoleRequest } = useSupabaseApp()
   const [tab, setTab] = useState<"list" | "requests">("list")
   const [search, setSearch] = useState("")
   const [selectedUserId, setSelectedUserId] = useState("")
