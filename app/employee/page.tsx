@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { useSupabaseApp } from "@/lib/supabase-app-context"
 
+export const dynamic = 'force-dynamic'
+
 const DAYS = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
 
 // Employee Weekly Plan Component

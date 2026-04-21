@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useSupabaseApp } from "@/lib/supabase-app-context"
 import type { Role } from "@/lib/supabase-app-context"
 
+export const dynamic = 'force-dynamic'
+
 const roleConfig: Record<Role, {
   label: string
   description: string

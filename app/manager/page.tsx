@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import NotificationBell from "@/components/notification-bell"
 import { useSupabaseApp } from "@/lib/supabase-app-context"
 
+export const dynamic = 'force-dynamic'
+
 const DAYS = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
 
 export default function ManagerHome() {
