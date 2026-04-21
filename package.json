@@ -32,7 +32,7 @@
     "tailwindcss": "^4.2.2",
     "typescript": "^5"
   },
-  "overrides": {
+  "resolutions": {
     "node-domexception": "npm:ignore"
   }
 }
