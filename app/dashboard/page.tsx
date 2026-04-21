@@ -10,6 +10,7 @@ import { useSupabaseApp } from "@/lib/supabase-app-context"
 import type { Role } from "@/lib/supabase-app-context"
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'edge'
 
 const roleConfig: Record<Role, {
   label: string
@@ -39,13 +40,13 @@ const roleConfig: Record<Role, {
 
 export default function DashboardPage() {
   const router = useRouter()
-  const { currentUser, roleRequests, logout, respondToRoleRequest, users } = useSupabaseApp()
+  const { currentUser, roleRequests, logout, respondToRoleRequest, users, loading } = useSupabaseApp()
 
   useEffect(() => {
-    if (!currentUser) router.push("/")
-  }, [currentUser, router])
+    if (!loading && !currentUser) router.push("/")
+  }, [currentUser, router, loading])
 
-  if (!currentUser) return null
+  if (loading || !currentUser) return null
 
   const pendingRequests = roleRequests.filter(
     r => r.toUserId === currentUser.id && r.status === "pending"

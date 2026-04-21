@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { useSupabaseApp } from "@/lib/supabase-app-context"
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'edge'
 
 const DAYS = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
 
