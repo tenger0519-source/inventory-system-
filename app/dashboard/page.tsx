@@ -1,15 +1,23 @@
-import dynamic from 'next/dynamic'
-import { Suspense } from 'react'
+"use client"
 
-const DashboardPage = dynamic(() => import('./client-wrapper'), {
+import { useEffect, useState } from "react"
+import dynamic from "next/dynamic"
+
+const DashboardComponent = dynamic(() => import('./dashboard-component'), {
   ssr: false,
   loading: () => <div>Loading...</div>
 })
 
-export default function Dashboard() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <DashboardPage />
-    </Suspense>
-  )
+export default function DashboardPage() {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return <div>Loading...</div>
+  }
+
+  return <DashboardComponent />
 }
