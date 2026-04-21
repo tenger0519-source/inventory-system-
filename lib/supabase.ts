@@ -1,9 +1,7 @@
-// @ts-ignore - Module resolution issue during development
 import { createClient } from '@supabase/supabase-js'
 
-// @ts-ignore - Process env types during development  
-const supabaseUrl = process.env?.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env?.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 // Create a dummy client for build time if environment variables are missing
 // This prevents build failures while still ensuring runtime errors when variables are actually needed
