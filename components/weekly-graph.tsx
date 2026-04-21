@@ -10,7 +10,7 @@ import {
   CartesianGrid,
   LabelList,
 } from "recharts"
-import { useApp } from "@/lib/app-context"
+import { useSupabaseApp } from "@/lib/supabase-app-context"
 
 const DAYS = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
 
@@ -109,7 +109,7 @@ interface WeeklyGraphProps {
 }
 
 export default function WeeklyGraph({ employee }: WeeklyGraphProps) {
-  const { tasks } = useApp()
+  const { tasks } = useSupabaseApp()
 
   // Generate weekly data from tasks
   const weeklyData = DAYS.map((day) => {
