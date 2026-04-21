@@ -5,9 +5,9 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useApp } from "@/lib/app-context"
+import { useSupabaseApp } from "@/lib/supabase-app-context"
 import NotificationBell from "@/components/notification-bell"
-import type { ProductRequest } from "@/lib/app-context"
+import type { ProductRequest } from "@/lib/supabase-app-context"
 
 type StockProduct = { id: number; name: string; stock: number }
 type RequestMap = { [id: number]: number }
@@ -22,7 +22,7 @@ const typeLabel = (type: "give" | "take") =>
   type === "give" ? "Өгөх" : "Авах"
 
 export default function SupplierHome() {
-  const { currentUser, users, productRequests, sendProductRequest, respondToProductRequest } = useApp()
+  const { currentUser, users, productRequests, sendProductRequest, respondToProductRequest } = useSupabaseApp()
 
   const [search, setSearch] = useState("")
   const [requested, setRequested] = useState<RequestMap>({})

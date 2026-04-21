@@ -4,12 +4,12 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import NotificationBell from "@/components/notification-bell"
-import { useApp } from "@/lib/app-context"
+import { useSupabaseApp } from "@/lib/supabase-app-context"
 
 const DAYS = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
 
 export default function ManagerHome() {
-  const { tasks, transactions, products, users, globalTime } = useApp()
+  const { tasks, transactions, products, users, globalTime } = useSupabaseApp()
   
   // Calculate task counts
   const todayTasks = tasks.filter(task => task.day === globalTime.currentDay)
